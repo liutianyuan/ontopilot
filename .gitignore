@@ -20,3 +20,9 @@ frontend/dist/
 
 # Backup
 config_orig_*/
+test-results/
+
+# Not synced to repo
+/docs/
+/ontopilot-prd-final.md
+/CLAUDE.md

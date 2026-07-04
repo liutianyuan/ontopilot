@@ -1,0 +1,26 @@
+# Context sources for complex ontology — 复杂本体上下文
+context_sources:
+  - type: scoped_query
+    object_type: Person
+    properties:
+      - id
+      - name
+      - email
+      - department
+      - level
+      - skills
+      - status
+      - manager_id
+    max_objects: 20
+
+  - type: scoped_query
+    object_type: Project
+    properties:
+      - id
+      - name
+      - status
+      - priority
+      - start_date
+      - end_date
+      - budget
+    max_objects: 10

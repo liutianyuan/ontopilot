@@ -1,0 +1,203 @@
+# Medium ontology seed data — 人物/组织/城市/事件/出版物演示数据
+Person:
+  - id: P-001
+    name: 张伟
+    age: 32
+    email: zhangwei@example.com
+    occupation: 软件工程师
+  - id: P-002
+    name: 李娜
+    age: 28
+    email: lina@example.com
+    occupation: 数据分析师
+  - id: P-003
+    name: 王强
+    age: 45
+    email: wangqiang@example.com
+    occupation: 教授
+  - id: P-004
+    name: 赵敏
+    age: 35
+    email: zhaomin@example.com
+    occupation: 项目经理
+  - id: P-005
+    name: 陈静
+    age: 30
+    email: chenjing@example.com
+    occupation: 研究员
+  - id: P-006
+    name: 刘洋
+    age: 38
+    email: liuyang@example.com
+    occupation: 产品经理
+
+Organization:
+  - id: ORG-001
+    name: 星辰科技有限公司
+    type: 公司
+    founded_year: 2010
+  - id: ORG-002
+    name: 北京理工大学
+    type: 大学
+    founded_year: 1940
+  - id: ORG-003
+    name: 蓝海研究院
+    type: 公司
+    founded_year: 2015
+  - id: ORG-004
+    name: 市政府发展研究中心
+    type: 政府
+    founded_year: 2000
+
+City:
+  - id: CITY-001
+    name: 北京
+    country: 中国
+    population: 21540000
+  - id: CITY-002
+    name: 上海
+    country: 中国
+    population: 24870000
+  - id: CITY-003
+    name: 深圳
+    country: 中国
+    population: 17560000
+
+Event:
+  - id: EVT-001
+    name: 人工智能前沿技术研讨会
+    date: "2025-03-15"
+    location: 北京
+    description: 探讨AI在行业中的最新应用与趋势
+  - id: EVT-002
+    name: 数据科学峰会
+    date: "2025-06-20"
+    location: 上海
+    description: 汇聚数据科学领域专家学者
+  - id: EVT-003
+    name: 科技创新创业大赛
+    date: "2025-09-10"
+    location: 深圳
+    description: 展示最新科技创新成果
+  - id: EVT-004
+    name: 知识图谱技术沙龙
+    date: "2025-11-05"
+    location: 北京
+    description: 知识图谱构建与应用经验分享
+
+Publication:
+  - id: PUB-001
+    title: 基于深度学习的自然语言处理研究
+    doi: "10.1234/nlp.2025.001"
+    year: 2025
+  - id: PUB-002
+    title: 知识图谱在企业数据治理中的应用
+    doi: "10.1234/kg.2025.002"
+    year: 2024
+  - id: PUB-003
+    title: 多模态数据分析方法综述
+    doi: "10.1234/mm.2025.003"
+    year: 2025
+  - id: PUB-004
+    title: 智慧城市中的信息融合技术
+    doi: "10.1234/sc.2024.004"
+    year: 2024
+
+links:
+  worksAt:
+    - source: P-001
+      target: ORG-001
+      properties:
+        role: 高级工程师
+        start_date: "2021-03-01"
+    - source: P-002
+      target: ORG-003
+      properties:
+        role: 数据分析主管
+        start_date: "2022-07-15"
+    - source: P-003
+      target: ORG-002
+      properties:
+        role: 博士生导师
+        start_date: "2010-09-01"
+    - source: P-004
+      target: ORG-004
+      properties:
+        role: 高级项目经理
+        start_date: "2019-01-10"
+    - source: P-005
+      target: ORG-001
+      properties:
+        role: 研究员
+        start_date: "2023-04-01"
+    - source: P-006
+      target: ORG-003
+      properties:
+        role: 产品总监
+        start_date: "2020-06-01"
+
+  locatedIn:
+    - source: ORG-001
+      target: CITY-002
+      properties: {}
+    - source: ORG-002
+      target: CITY-001
+      properties: {}
+    - source: ORG-003
+      target: CITY-003
+      properties: {}
+    - source: ORG-004
+      target: CITY-001
+      properties: {}
+
+  attends:
+    - source: P-001
+      target: EVT-001
+      properties:
+        role: 听众
+    - source: P-003
+      target: EVT-001
+      properties:
+        role: 演讲者
+    - source: P-002
+      target: EVT-002
+      properties:
+        role: 演讲者
+    - source: P-005
+      target: EVT-002
+      properties:
+        role: 听众
+    - source: P-004
+      target: EVT-004
+      properties:
+        role: 组织者
+    - source: P-006
+      target: EVT-003
+      properties:
+        role: 评委
+
+  authoredBy:
+    - source: PUB-001
+      target: P-003
+      properties:
+        order: 1
+    - source: PUB-001
+      target: P-005
+      properties:
+        order: 2
+    - source: PUB-002
+      target: P-001
+      properties:
+        order: 1
+    - source: PUB-003
+      target: P-002
+      properties:
+        order: 1
+    - source: PUB-003
+      target: P-005
+      properties:
+        order: 2
+    - source: PUB-004
+      target: P-004
+      properties:
+        order: 1

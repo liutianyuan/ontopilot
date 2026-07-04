@@ -1,0 +1,348 @@
+# Procurement seed data — 采购供应商分货场景
+Material:
+  - materialId: MAT-001
+    name: 锂离子电芯
+    category: 电子料
+    margin: 0.35
+    label: leveraged_competitive
+    unit: pcs
+    annualDemand: 50000
+    currentStock: 3200
+    primarySupplierId: SUP-001
+    status: active
+  - materialId: MAT-002
+    name: 液晶显示屏
+    category: 电子料
+    margin: 0.22
+    label: leveraged_preferred
+    unit: pcs
+    annualDemand: 30000
+    currentStock: 1500
+    primarySupplierId: SUP-002
+    status: active
+  - materialId: MAT-003
+    name: 铝合金外壳
+    category: 结构件
+    margin: 0.15
+    label: general
+    unit: pcs
+    annualDemand: 80000
+    currentStock: 5800
+    primarySupplierId: SUP-003
+    status: active
+  - materialId: MAT-004
+    name: 光学镜头模组
+    category: 电子料
+    margin: 0.28
+    label: co_creation
+    unit: pcs
+    annualDemand: 20000
+    currentStock: 800
+    primarySupplierId: SUP-002
+    status: active
+  - materialId: MAT-005
+    name: 主控芯片
+    category: 芯片组
+    margin: 0.45
+    label: leveraged_competitive
+    unit: pcs
+    annualDemand: 10000
+    currentStock: 200
+    primarySupplierId: SUP-001
+    status: active
+  - materialId: MAT-006
+    name: 瓦楞纸箱
+    category: 包装材料
+    margin: 0.08
+    label: general
+    unit: pcs
+    annualDemand: 200000
+    currentStock: 50000
+    primarySupplierId: SUP-005
+    status: active
+
+Supplier:
+  - supplierId: SUP-001
+    name: 华兴科技
+    region: 华南
+    capacity: 5000
+    yieldRate: 0.985
+    deliveryTimeliness: 0.96
+    qualityScore: 92
+    priceIndex: 105
+    leadTimeDays: 14
+    certLevel: A
+    status: active
+  - supplierId: SUP-002
+    name: 东方精密
+    region: 华东
+    capacity: 3000
+    yieldRate: 0.992
+    deliveryTimeliness: 0.92
+    qualityScore: 95
+    priceIndex: 115
+    leadTimeDays: 21
+    certLevel: A
+    status: active
+  - supplierId: SUP-003
+    name: 北方工业
+    region: 华北
+    capacity: 4000
+    yieldRate: 0.970
+    deliveryTimeliness: 0.88
+    qualityScore: 85
+    priceIndex: 95
+    leadTimeDays: 10
+    certLevel: B
+    status: active
+  - supplierId: SUP-004
+    name: 海威电子
+    region: 华东
+    capacity: 2000
+    yieldRate: 0.955
+    deliveryTimeliness: 0.85
+    qualityScore: 78
+    priceIndex: 88
+    leadTimeDays: 7
+    certLevel: B
+    status: active
+  - supplierId: SUP-005
+    name: 安达供应链
+    region: 华南
+    capacity: 6000
+    yieldRate: 0.930
+    deliveryTimeliness: 0.98
+    qualityScore: 80
+    priceIndex: 92
+    leadTimeDays: 20
+    certLevel: C
+    status: active
+
+AllocationPlan:
+  - planId: PLAN-001
+    materialId: MAT-001
+    period: "2026-06"
+    totalQuantity: 5000
+    status: executing
+    strategy: balanced
+    note: 锂离子电芯6月份分货计划
+    createdAt: "2026-05-25"
+    updatedAt: "2026-06-10"
+  - planId: PLAN-002
+    materialId: MAT-002
+    period: "2026-06"
+    totalQuantity: 3000
+    status: confirmed
+    strategy: cost_optimized
+    note: 液晶显示屏6月份分货计划
+    createdAt: "2026-06-01"
+    updatedAt: "2026-06-15"
+  - planId: PLAN-003
+    materialId: MAT-005
+    period: "2026-07"
+    totalQuantity: 1200
+    status: draft
+    strategy: quality_priority
+    note: 主控芯片7月份分货计划
+    createdAt: "2026-06-20"
+    updatedAt: "2026-06-20"
+
+AllocationBatch:
+  - batchId: BATCH-001
+    planId: PLAN-001
+    supplierId: SUP-001
+    materialId: MAT-001
+    allocatedQty: 2500
+    confirmedQty: 2500
+    deliveredQty: 1800
+    unitPrice: 45.00
+    status: in_transit
+    createdAt: "2026-05-26"
+    updatedAt: "2026-06-12"
+  - batchId: BATCH-002
+    planId: PLAN-001
+    supplierId: SUP-002
+    materialId: MAT-001
+    allocatedQty: 1500
+    confirmedQty: 1500
+    deliveredQty: 1500
+    unitPrice: 52.00
+    status: delivered
+    createdAt: "2026-05-26"
+    updatedAt: "2026-06-08"
+  - batchId: BATCH-003
+    planId: PLAN-001
+    supplierId: SUP-003
+    materialId: MAT-001
+    allocatedQty: 1000
+    confirmedQty: 800
+    deliveredQty: 0
+    unitPrice: 38.00
+    status: in_transit
+    createdAt: "2026-06-01"
+    updatedAt: "2026-06-10"
+  - batchId: BATCH-004
+    planId: PLAN-002
+    supplierId: SUP-001
+    materialId: MAT-002
+    allocatedQty: 1200
+    confirmedQty: 1200
+    deliveredQty: 0
+    unitPrice: 88.00
+    status: confirmed
+    createdAt: "2026-06-02"
+    updatedAt: "2026-06-15"
+  - batchId: BATCH-005
+    planId: PLAN-002
+    supplierId: SUP-002
+    materialId: MAT-002
+    allocatedQty: 1800
+    confirmedQty: 0
+    deliveredQty: 0
+    unitPrice: 98.00
+    status: pending
+    createdAt: "2026-06-02"
+    updatedAt: "2026-06-02"
+  - batchId: BATCH-006
+    planId: PLAN-003
+    supplierId: SUP-001
+    materialId: MAT-005
+    allocatedQty: 600
+    confirmedQty: 0
+    deliveredQty: 0
+    unitPrice: 280.00
+    status: pending
+    createdAt: "2026-06-20"
+    updatedAt: "2026-06-20"
+  - batchId: BATCH-007
+    planId: PLAN-003
+    supplierId: SUP-002
+    materialId: MAT-005
+    allocatedQty: 400
+    confirmedQty: 0
+    deliveredQty: 0
+    unitPrice: 320.00
+    status: pending
+    createdAt: "2026-06-20"
+    updatedAt: "2026-06-20"
+  - batchId: BATCH-008
+    planId: PLAN-003
+    supplierId: SUP-005
+    materialId: MAT-005
+    allocatedQty: 200
+    confirmedQty: 0
+    deliveredQty: 0
+    unitPrice: 250.00
+    status: pending
+    createdAt: "2026-06-20"
+    updatedAt: "2026-06-20"
+
+PurchaseOrder:
+  - orderId: PO-001
+    batchId: BATCH-001
+    supplierId: SUP-001
+    materialId: MAT-001
+    quantity: 2500
+    unitPrice: 45.00
+    totalAmount: 112500.00
+    orderDate: "2026-06-01"
+    deliveryDate: "2026-06-20"
+    status: shipped
+  - orderId: PO-002
+    batchId: BATCH-002
+    supplierId: SUP-002
+    materialId: MAT-001
+    quantity: 1500
+    unitPrice: 52.00
+    totalAmount: 78000.00
+    orderDate: "2026-06-01"
+    deliveryDate: "2026-06-15"
+    status: received
+  - orderId: PO-003
+    batchId: BATCH-003
+    supplierId: SUP-003
+    materialId: MAT-001
+    quantity: 800
+    unitPrice: 38.00
+    totalAmount: 30400.00
+    orderDate: "2026-06-05"
+    deliveryDate: "2026-06-25"
+    status: approved
+  - orderId: PO-004
+    batchId: BATCH-004
+    supplierId: SUP-001
+    materialId: MAT-002
+    quantity: 1200
+    unitPrice: 88.00
+    totalAmount: 105600.00
+    orderDate: "2026-06-10"
+    deliveryDate: "2026-07-05"
+    status: approved
+  - orderId: PO-005
+    batchId: BATCH-005
+    supplierId: SUP-002
+    materialId: MAT-002
+    quantity: 1800
+    unitPrice: 98.00
+    totalAmount: 176400.00
+    orderDate: "2026-06-10"
+    deliveryDate: "2026-07-10"
+    status: pending
+
+SupplierScore:
+  - scoreId: SCORE-001
+    supplierId: SUP-001
+    period: "2026-05"
+    deliveryScore: 92
+    qualityScore: 90
+    complianceScore: 95
+    overallScore: 92
+    evaluator: procurement_team
+  - scoreId: SCORE-002
+    supplierId: SUP-002
+    period: "2026-05"
+    deliveryScore: 85
+    qualityScore: 96
+    complianceScore: 98
+    overallScore: 93
+    evaluator: procurement_team
+  - scoreId: SCORE-003
+    supplierId: SUP-003
+    period: "2026-05"
+    deliveryScore: 78
+    qualityScore: 88
+    complianceScore: 82
+    overallScore: 83
+    evaluator: procurement_team
+  - scoreId: SCORE-004
+    supplierId: SUP-004
+    period: "2026-05"
+    deliveryScore: 75
+    qualityScore: 72
+    complianceScore: 80
+    overallScore: 76
+    evaluator: procurement_team
+  - scoreId: SCORE-005
+    supplierId: SUP-005
+    period: "2026-05"
+    deliveryScore: 95
+    qualityScore: 78
+    complianceScore: 70
+    overallScore: 81
+    evaluator: procurement_team
+  - scoreId: SCORE-006
+    supplierId: SUP-001
+    period: "2026-06"
+    deliveryScore: 90
+    qualityScore: 91
+    complianceScore: 95
+    overallScore: 92
+    evaluator: procurement_team
+  - scoreId: SCORE-007
+    supplierId: SUP-002
+    period: "2026-06"
+    deliveryScore: 88
+    qualityScore: 97
+    complianceScore: 98
+    overallScore: 94
+    evaluator: procurement_team

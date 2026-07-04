@@ -1,0 +1,19 @@
+# Permissions — 复杂本体权限
+roles:
+  staff:
+    query_types: [Person, Department, Project, Skill, Office, Meeting, Document, KPI]
+    functions: [calculateSkillGap, analyzeProjectHealth]
+    actions:
+      assignToProject:     { requires_confirmation: true }
+      transferOffice:      { requires_confirmation: false }
+    data_scope: {}
+
+  admin:
+    query_types: [Person, Department, Project, Skill, Office, Meeting, Document, KPI]
+    functions: [calculateSkillGap, findBestTeam, analyzeProjectHealth, getOrgChart]
+    actions:
+      assignToProject:     { requires_confirmation: false }
+      updateProjectStatus: { requires_confirmation: false }
+      promoteEmployee:     { requires_confirmation: false }
+      transferOffice:      { requires_confirmation: false }
+    data_scope: {}

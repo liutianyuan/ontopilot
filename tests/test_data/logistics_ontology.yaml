@@ -1,0 +1,140 @@
+# Logistics Ontology — 物流运营知识图谱（测试数据）
+object_types:
+
+  Shipment:
+    description: 货物运输记录
+    properties:
+      shipmentId:   { type: string, primary_key: true }
+      orderId:      { type: string }
+      status:       { type: enum, values: [pending, in_transit, delayed, delivered] }
+      ETA:          { type: datetime }
+      originalETA:  { type: datetime }
+      delayReason:  { type: string, nullable: true }
+      carrierId:    { type: string }
+      warehouseId:  { type: string }
+      weightKg:     { type: float }
+    links:
+      belongsTo:  { target: Order,     foreign_key: orderId }
+      handledBy:  { target: Carrier,   foreign_key: carrierId }
+      locatedAt:  { target: Warehouse, foreign_key: warehouseId }
+
+  Order:
+    description: 客户订单
+    properties:
+      orderId:              { type: string, primary_key: true }
+      customerId:           { type: string }
+      priority:             { type: enum, values: [low, medium, high, urgent] }
+      orderValue:           { type: float }
+      requiredDeliveryDate: { type: datetime }
+    links:
+      belongsTo: { target: Customer, foreign_key: customerId }
+
+  Customer:
+    description: 客户信息
+    properties:
+      customerId:   { type: string, primary_key: true }
+      name:         { type: string }
+      serviceLevel: { type: enum, values: [standard, premium, VIP] }
+      region:       { type: string }
+
+  Carrier:
+    description: 承运商
+    properties:
+      carrierId:          { type: string, primary_key: true }
+      name:               { type: string }
+      performanceScore:   { type: int }
+      delayRate:          { type: float }
+      pricePerKg:         { type: float }
+      avgTransitHours:    { type: float }
+      availableCapacity:  { type: int }
+
+  Warehouse:
+    description: 仓库
+    properties:
+      warehouseId:       { type: string, primary_key: true }
+      name:              { type: string }
+      region:            { type: string }
+      capacity:          { type: int }
+      backlog:           { type: int }
+      backlogDelayHours: { type: float }
+
+  ExceptionCase:
+    description: 异常工单
+    properties:
+      caseId:     { type: string, primary_key: true }
+      shipmentId: { type: string }
+      reason:     { type: string }
+      priority:   { type: enum, values: [low, medium, high] }
+      status:     { type: enum, values: [open, in_progress, resolved] }
+      createdBy:  { type: string }
+      createdAt:  { type: datetime }
+    links:
+      relatedTo: { target: Shipment, foreign_key: shipmentId }
+
+actions:
+
+  createShipment:
+    description: "为订单创建新的发货单"
+    params:
+      orderId:     { type: string, required: true }
+      carrierId:   { type: string, required: true }
+      warehouseId: { type: string, required: true }
+      weightKg:    { type: float, required: true }
+    target_type: Shipment
+    creates: true
+    requires_confirmation: true
+
+  updateETA:
+    description: "更新 Shipment 的预计到达时间"
+    params:
+      shipmentId: { type: string, required: true }
+      newETA:     { type: datetime, required: true }
+      reason:     { type: string, required: true }
+    target_type: Shipment
+    edits: { ETA: newETA }
+    requires_confirmation: false
+
+  assignCarrier:
+    description: "为 Shipment 更换承运商"
+    params:
+      shipmentId:   { type: string, required: true }
+      newCarrierId: { type: string, required: true }
+      reason:       { type: string, required: true }
+    target_type: Shipment
+    edits: { carrierId: newCarrierId }
+    requires_confirmation: true
+
+  openExceptionCase:
+    description: "为 Shipment 创建异常工单"
+    params:
+      shipmentId: { type: string, required: true }
+      reason:     { type: string, required: true }
+      priority:   { type: enum, values: [low, medium, high], required: true }
+    target_type: ExceptionCase
+    creates: true
+    requires_confirmation: true
+
+functions:
+
+  calculateDelayRisk:
+    description: "计算 Shipment 延误风险等级"
+    params:
+      shipmentIds: { type: list, required: true }
+    returns: "list[{shipmentId, riskLevel, riskScore, reasons}]"
+    permission: calculateDelayRisk
+
+  recommendCarrier:
+    description: "为延误 Shipment 推荐替代承运商"
+    params:
+      shipmentId:  { type: string, required: true }
+      constraints: { type: object, required: false }
+    returns: "{carrierId, carrierName, estimatedETA, estimatedCost, reason}"
+    permission: recommendCarrier
+
+  compareDecisions:
+    description: "对比多个决策方案的单步仿真结果"
+    params:
+      shipmentId: { type: string, required: true }
+      options:    { type: list, required: true }
+    returns: "list[{option, simulatedOutcome}]"
+    permission: compareDecisions

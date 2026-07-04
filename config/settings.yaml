@@ -1,0 +1,19 @@
+active_model_id: model-mqqgwumv
+models:
+- api_key_env: ANTHROPIC_API_KEY
+  base_url: ''
+  id: model-default
+  max_tokens: 4096
+  model: claude-sonnet-4-5
+  name: Anthropic Claude
+  provider: anthropic
+  temperature: 0
+- api_key: sk-7e62219c49b24417937b9f3158c09c5c
+  api_key_env: ''
+  base_url: https://api.deepseek.com
+  id: model-mqqgwumv
+  max_tokens: 32000
+  model: deepseek-v4-flash
+  name: deepseek-v4-flash
+  provider: openai_compatible
+  temperature: 0

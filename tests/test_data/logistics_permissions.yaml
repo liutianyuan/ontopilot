@@ -1,0 +1,33 @@
+# Permissions — 物流运营测试权限
+roles:
+  dispatcher:
+    query_types: [Shipment, Order, Warehouse, ExceptionCase]
+    functions: [calculateDelayRisk]
+    actions:
+      createShipment:    { requires_confirmation: true }
+      updateETA:         { requires_confirmation: false }
+      assignCarrier:     { requires_confirmation: true }
+      openExceptionCase: { requires_confirmation: true }
+    data_scope:
+      Warehouse.region: [华南]
+
+  regional_manager:
+    query_types: [Shipment, Order, Warehouse, Carrier, Customer, ExceptionCase]
+    functions: [calculateDelayRisk, recommendCarrier, compareDecisions]
+    actions:
+      createShipment:    { requires_confirmation: true }
+      updateETA:           { requires_confirmation: false }
+      assignCarrier:       { requires_confirmation: false }
+      openExceptionCase:   { requires_confirmation: false }
+    data_scope:
+      Warehouse.region: [华南, 华东]
+
+  admin:
+    query_types: [Shipment, Order, Warehouse, Carrier, Customer, ExceptionCase]
+    functions: [calculateDelayRisk, recommendCarrier, compareDecisions]
+    actions:
+      createShipment:    { requires_confirmation: false }
+      updateETA:           { requires_confirmation: false }
+      assignCarrier:       { requires_confirmation: false }
+      openExceptionCase:   { requires_confirmation: false }
+    data_scope: {}

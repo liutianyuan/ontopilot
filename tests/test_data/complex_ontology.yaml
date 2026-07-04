@@ -1,0 +1,479 @@
+object_types:
+  Person:
+    description: 人员实体，知识图谱的核心人物节点
+    properties:
+      id:
+        type: string
+        required: true
+        description: 唯一标识符（格式：P-XXXXX）
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 人员姓名
+      email:
+        type: string
+        required: false
+        description: 电子邮箱地址
+      phone:
+        type: string
+        required: false
+        description: 电话号码
+      department:
+        type: string
+        required: false
+        description: 所在部门
+      level:
+        type: string
+        required: false
+        description: 职级
+      skills:
+        type: list<string>
+        required: false
+        description: 技能列表
+      status:
+        type: string
+        required: false
+        description: 人员状态（active/inactive/leave）
+      joined_at:
+        type: string
+        required: false
+        description: 入职日期
+      manager_id:
+        type: string
+        required: false
+        description: 上级人员ID（自引用关系）
+  Department:
+    description: 部门实体
+    properties:
+      id:
+        type: string
+        required: true
+        description: 部门编号
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 部门名称
+      code:
+        type: string
+        required: false
+        description: 部门代码
+      budget:
+        type: number
+        required: false
+        description: 部门预算
+      head_count:
+        type: integer
+        required: false
+        description: 部门人数
+      established_date:
+        type: string
+        required: false
+        description: 成立日期
+  Project:
+    description: 项目实体
+    properties:
+      id:
+        type: string
+        required: true
+        description: 项目编号
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 项目名称
+      status:
+        type: string
+        required: false
+        description: 项目状态（planning/active/completed/on_hold/cancelled）
+      priority:
+        type: string
+        required: false
+        description: 优先级（high/medium/low）
+      start_date:
+        type: string
+        required: false
+        description: 开始日期
+      end_date:
+        type: string
+        required: false
+        description: 结束日期
+      budget:
+        type: number
+        required: false
+        description: 项目预算
+  Skill:
+    description: 技能实体
+    properties:
+      id:
+        type: string
+        required: true
+        description: 技能编号
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 技能名称
+      category:
+        type: string
+        required: false
+        description: 技能分类
+      description:
+        type: string
+        required: false
+        description: 技能描述
+  Office:
+    description: 办公地点实体
+    properties:
+      id:
+        type: string
+        required: true
+        description: 地点编号
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 地点名称
+      city:
+        type: string
+        required: false
+        description: 所在城市
+      country:
+        type: string
+        required: false
+        description: 所在国家
+      address:
+        type: string
+        required: false
+        description: 详细地址
+  Meeting:
+    description: 会议实体
+    properties:
+      id:
+        type: string
+        required: true
+        description: 会议编号
+        primary_key: true
+      title:
+        type: string
+        required: true
+        description: 会议标题
+      date:
+        type: string
+        required: false
+        description: 会议日期
+      duration_minutes:
+        type: integer
+        required: false
+        description: 会议时长（分钟）
+      room:
+        type: string
+        required: false
+        description: 会议室
+      summary:
+        type: string
+        required: false
+        description: 会议摘要
+  Document:
+    description: 文档实体
+    properties:
+      id:
+        type: string
+        required: true
+        description: 文档编号
+        primary_key: true
+      title:
+        type: string
+        required: true
+        description: 文档标题
+      type:
+        type: string
+        required: false
+        description: 文档类型（report/proposal/meeting_notes/spec）
+      version:
+        type: string
+        required: false
+        description: 版本号
+      created_at:
+        type: string
+        required: false
+        description: 创建时间
+      content:
+        type: string
+        required: false
+        description: 文本内容
+  KPI:
+    description: 关键绩效指标实体
+    properties:
+      id:
+        type: string
+        required: true
+        description: KPI编号
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: KPI名称
+      value:
+        type: number
+        required: false
+        description: 当前值
+      target:
+        type: number
+        required: false
+        description: 目标值
+      unit:
+        type: string
+        required: false
+        description: 指标单位
+      period:
+        type: string
+        required: false
+        description: 统计周期
+links:
+  belongsTo:
+    source_type: Person
+    target_type: Department
+    description: 人员所属部门关系
+    properties:
+      start_date:
+        type: string
+        required: false
+        description: 开始日期
+      end_date:
+        type: string
+        required: false
+        description: 结束日期
+  participatesIn:
+    source_type: Person
+    target_type: Project
+    description: 人员参与项目关系
+    properties:
+      role:
+        type: string
+        required: false
+        description: 项目角色（manager/developer/designer/tester）
+      allocation_percentage:
+        type: integer
+        required: false
+        description: 投入比例
+      start_date:
+        type: string
+        required: false
+        description: 参与开始日期
+  hasSkill:
+    source_type: Person
+    target_type: Skill
+    description: 人员拥有技能关系
+    properties:
+      proficiency:
+        type: integer
+        required: false
+        description: 熟练度（1-5）
+      certified:
+        type: boolean
+        required: false
+        description: 是否认证
+  locatedAt:
+    source_type: Person
+    target_type: Office
+    description: 人员办公地点
+    properties:
+      desk_number:
+        type: string
+        required: false
+        description: 工位号
+      is_primary:
+        type: boolean
+        required: false
+        description: 是否主要办公地点
+  manages:
+    source_type: Person
+    target_type: Project
+    description: 人员管理项目
+    properties:
+      role:
+        type: string
+        required: false
+        description: 管理角色
+  references:
+    source_type: Document
+    target_type: Person
+    description: 文档引用人员
+    properties:
+      mention_type:
+        type: string
+        required: false
+        description: 提及类型（author/contributor/subject）
+  relatedTo:
+    source_type: Project
+    target_type: Project
+    description: 项目间关联关系
+    properties:
+      relationship:
+        type: string
+        required: false
+        description: 关联类型（dependency/related/supersedes）
+  tracks:
+    source_type: KPI
+    target_type: Project
+    description: KPI追踪项目指标
+    properties:
+      weight:
+        type: number
+        required: false
+        description: 权重
+actions:
+  assignToProject:
+    description: 将人员分配到项目
+    target_type: Person
+    params:
+      person_id:
+        type: string
+        description: 人员ID
+        required: true
+      project_id:
+        type: string
+        description: 项目ID
+        required: true
+      role:
+        type: string
+        description: 项目角色
+        required: false
+      allocation:
+        type: integer
+        description: 投入百分比
+        required: false
+    edits:
+    - target:
+        type: Person
+        ref: '{person_id}'
+      set:
+        status: active
+    creates:
+    - type: link
+      link_type: participatesIn
+      source_type: Person
+      source_ref: '{person_id}'
+      target_type: Project
+      target_ref: '{project_id}'
+      properties:
+        role: '{role}'
+        allocation_percentage: '{allocation}'
+  updateProjectStatus:
+    description: 更新项目状态（需要确认）
+    target_type: Project
+    requires_confirmation: true
+    params:
+      project_id:
+        type: string
+        description: 项目ID
+        required: true
+      new_status:
+        type: string
+        description: 新状态（planning/active/completed/on_hold/cancelled）
+        required: true
+    edits:
+    - target:
+        type: Project
+        ref: '{project_id}'
+      set:
+        status: '{new_status}'
+  promoteEmployee:
+    description: 晋升员工
+    target_type: Person
+    requires_confirmation: true
+    params:
+      person_id:
+        type: string
+        description: 员工ID
+        required: true
+      new_level:
+        type: string
+        description: 新职级
+        required: true
+      new_department:
+        type: string
+        description: 新部门
+        required: false
+    edits:
+    - target:
+        type: Person
+        ref: '{person_id}'
+      set:
+        level: '{new_level}'
+        department: '{new_department}'
+  transferOffice:
+    description: 调整人员办公地点
+    target_type: Person
+    params:
+      person_id:
+        type: string
+        description: 人员ID
+        required: true
+      new_office_id:
+        type: string
+        description: 新办公地点ID
+        required: true
+    edits:
+    - target:
+        type: Person
+        ref: '{person_id}'
+      set: {}
+    creates:
+    - type: link
+      link_type: locatedAt
+      source_type: Person
+      source_ref: '{person_id}'
+      target_type: Office
+      target_ref: '{new_office_id}'
+      properties:
+        is_primary: true
+functions:
+  calculateSkillGap:
+    description: 计算项目技能缺口：分析项目需求与团队现有技能的差距
+    params:
+      project_id:
+        type: string
+        description: 项目ID
+        required: true
+    returns:
+      type: object
+      description: 技能差距分析结果（skills_available, skills_missing, coverage_percentage）
+  findBestTeam:
+    description: 根据项目需求推荐最优团队组合
+    params:
+      project_id:
+        type: string
+        description: 项目ID
+        required: true
+      min_size:
+        type: integer
+        description: 最小团队人数
+        required: false
+    returns:
+      type: list
+      description: 推荐的人员列表及匹配分数
+  analyzeProjectHealth:
+    description: 分析项目健康度，综合多个维度评分
+    params:
+      project_id:
+        type: string
+        description: 项目ID
+        required: true
+    returns:
+      type: object
+      description: 项目健康度报告（budget_health, timeline_health, team_health, overall_score）
+  getOrgChart:
+    description: 获取组织架构报告
+    params:
+      department_id:
+        type: string
+        description: 部门ID
+        required: false
+    permission:
+      role: admin
+    returns:
+      type: object
+      description: 组织架构树

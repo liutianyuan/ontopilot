@@ -1,0 +1,95 @@
+# Simple ontology seed data — 人物/城市/公司/书籍演示数据
+Person:
+  - id: P-001
+    name: 张伟
+    age: 32
+    email: zhangwei@example.com
+    created_at: "2024-01-15"
+  - id: P-002
+    name: 李娜
+    age: 28
+    email: lina@example.com
+    created_at: "2024-03-20"
+  - id: P-003
+    name: 王强
+    age: 45
+    email: wangqiang@example.com
+    created_at: "2024-02-10"
+  - id: P-004
+    name: 赵敏
+    age: 35
+    email: zhaomin@example.com
+    created_at: "2024-05-08"
+  - id: P-005
+    name: 陈静
+    age: 30
+    email: chenjing@example.com
+    created_at: "2024-04-12"
+
+City:
+  - id: CITY-001
+    name: 北京
+    country: 中国
+    population: 21540000
+  - id: CITY-002
+    name: 上海
+    country: 中国
+    population: 24870000
+  - id: CITY-003
+    name: 深圳
+    country: 中国
+    population: 17560000
+  - id: CITY-004
+    name: 杭州
+    country: 中国
+    population: 11940000
+
+Company:
+  - id: COM-001
+    name: 星辰科技
+    industry: 信息技术
+    founded_year: 2010
+  - id: COM-002
+    name: 蓝海教育
+    industry: 教育
+    founded_year: 2005
+  - id: COM-003
+    name: 绿叶环保
+    industry: 环保
+    founded_year: 2018
+  - id: COM-004
+    name: 远方传媒
+    industry: 文化传媒
+    founded_year: 2012
+
+Book:
+  - id: BK-001
+    title: 数据结构与算法
+    isbn: "978-7-111-58976-3"
+    published_year: 2020
+    genre: 计算机科学
+  - id: BK-002
+    title: 人工智能导论
+    isbn: "978-7-302-54321-0"
+    published_year: 2021
+    genre: 计算机科学
+  - id: BK-003
+    title: 经济学原理
+    isbn: "978-7-301-29876-5"
+    published_year: 2019
+    genre: 经济学
+  - id: BK-004
+    title: 设计模式之美
+    isbn: "978-7-121-37890-1"
+    published_year: 2022
+    genre: 计算机科学
+  - id: BK-005
+    title: 人类简史
+    isbn: "978-7-508-68867-3"
+    published_year: 2014
+    genre: 历史
+  - id: BK-006
+    title: 百年孤独
+    isbn: "978-7-544-25281-0"
+    published_year: 2011
+    genre: 文学

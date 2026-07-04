@@ -1,0 +1,446 @@
+# Procurement Ontology — 采购供应商分货场景
+# 品类管理 + 供应商管理 + 分货分配 + 绩效评分
+object_types:
+  Material:
+    description: 物料品类，包含毛利率、品类标签等信息
+    properties:
+      materialId:
+        type: string
+        required: true
+        primary_key: true
+        description: 物料编号（格式：MAT-XXX）
+      name:
+        type: string
+        required: true
+        description: 物料名称
+      category:
+        type: string
+        required: true
+        description: 物料类别（电子料/结构件/包装材料/芯片组）
+      margin:
+        type: number
+        required: true
+        description: 毛利率（百分比，如0.35表示35%）
+      label:
+        type: string
+        required: true
+        description: 品类标签（leveraged_competitive/leveraged_preferred/co_creation/general）
+      unit:
+        type: string
+        required: false
+        description: 计量单位（pcs/kg/set）
+      annualDemand:
+        type: integer
+        required: false
+        description: 年需求量
+      currentStock:
+        type: integer
+        required: false
+        description: 当前库存
+      primarySupplierId:
+        type: string
+        required: false
+        description: 首选供应商ID
+      status:
+        type: string
+        required: false
+        description: 状态（active/discontinued）
+    links:
+      suppliedBy:
+        target: Supplier
+        foreign_key: primarySupplierId
+
+  Supplier:
+    description: 供应商实体，包含产能、质量、交付等多维绩效数据
+    properties:
+      supplierId:
+        type: string
+        required: true
+        primary_key: true
+        description: 供应商编号（格式：SUP-XXX）
+      name:
+        type: string
+        required: true
+        description: 供应商名称
+      region:
+        type: string
+        required: true
+        description: 所在区域（华南/华东/华北/海外）
+      capacity:
+        type: integer
+        required: true
+        description: 月产能（件数）
+      yieldRate:
+        type: number
+        required: true
+        description: 良品率（0-1）
+      deliveryTimeliness:
+        type: number
+        required: true
+        description: 交付及时率（0-1）
+      qualityScore:
+        type: number
+        required: false
+        description: 质量评分（0-100）
+      priceIndex:
+        type: number
+        required: false
+        description: 价格指数（基准100）
+      leadTimeDays:
+        type: integer
+        required: false
+        description: 交货周期（天）
+      certLevel:
+        type: string
+        required: false
+        description: 认证等级（A/B/C）
+      status:
+        type: string
+        required: false
+        description: 状态（active/inactive/blacklisted）
+
+  AllocationPlan:
+    description: 分货计划，针对某物料在某个周期的分配方案
+    properties:
+      planId:
+        type: string
+        required: true
+        primary_key: true
+        description: 计划编号（格式：PLAN-XXX）
+      materialId:
+        type: string
+        required: true
+        description: 关联物料ID
+      period:
+        type: string
+        required: true
+        description: 分配周期（格式：YYYY-MM）
+      totalQuantity:
+        type: integer
+        required: true
+        description: 计划分配总量
+      status:
+        type: string
+        required: true
+        description: 状态（draft/confirmed/executing/completed）
+      strategy:
+        type: string
+        required: false
+        description: 分配策略（cost_optimized/quality_priority/balanced）
+      note:
+        type: string
+        required: false
+        description: 备注
+      createdAt:
+        type: string
+        required: false
+        description: 创建时间
+      updatedAt:
+        type: string
+        required: false
+        description: 最后更新时间
+    links:
+      forMaterial:
+        target: Material
+        foreign_key: materialId
+
+  AllocationBatch:
+    description: 分货批次，一个计划下分配给某个供应商的具体批次
+    properties:
+      batchId:
+        type: string
+        required: true
+        primary_key: true
+        description: 批次编号（格式：BATCH-XXX）
+      planId:
+        type: string
+        required: true
+        description: 所属计划ID
+      supplierId:
+        type: string
+        required: true
+        description: 分配的供应商ID
+      materialId:
+        type: string
+        required: true
+        description: 物料ID
+      allocatedQty:
+        type: integer
+        required: true
+        description: 计划分配数量
+      confirmedQty:
+        type: integer
+        required: false
+        description: 供应商确认数量
+      deliveredQty:
+        type: integer
+        required: false
+        description: 已交付数量
+      unitPrice:
+        type: number
+        required: false
+        description: 单价
+      status:
+        type: string
+        required: true
+        description: 状态（pending/confirmed/in_transit/delivered/cancelled）
+      createdAt:
+        type: string
+        required: false
+        description: 创建时间
+      updatedAt:
+        type: string
+        required: false
+        description: 最后更新时间
+    links:
+      belongsToPlan:
+        target: AllocationPlan
+        foreign_key: planId
+      assignedTo:
+        target: Supplier
+        foreign_key: supplierId
+      forMaterial:
+        target: Material
+        foreign_key: materialId
+
+  PurchaseOrder:
+    description: 采购订单，由分货批次生成的正式订单
+    properties:
+      orderId:
+        type: string
+        required: true
+        primary_key: true
+        description: 订单编号（格式：PO-XXX）
+      batchId:
+        type: string
+        required: true
+        description: 关联批次ID
+      supplierId:
+        type: string
+        required: true
+        description: 供应商ID
+      materialId:
+        type: string
+        required: true
+        description: 物料ID
+      quantity:
+        type: integer
+        required: true
+        description: 订购数量
+      unitPrice:
+        type: number
+        required: false
+        description: 单价
+      totalAmount:
+        type: number
+        required: false
+        description: 总金额
+      orderDate:
+        type: string
+        required: false
+        description: 下单日期
+      deliveryDate:
+        type: string
+        required: false
+        description: 要求交货日期
+      status:
+        type: string
+        required: true
+        description: 状态（pending/approved/shipped/received/cancelled）
+    links:
+      generatedFrom:
+        target: AllocationBatch
+        foreign_key: batchId
+      placedAt:
+        target: Supplier
+        foreign_key: supplierId
+      ordersMaterial:
+        target: Material
+        foreign_key: materialId
+
+  SupplierScore:
+    description: 供应商绩效评分记录
+    properties:
+      scoreId:
+        type: string
+        required: true
+        primary_key: true
+        description: 评分记录编号（格式：SCORE-XXX）
+      supplierId:
+        type: string
+        required: true
+        description: 供应商ID
+      period:
+        type: string
+        required: true
+        description: 评估周期（格式：YYYY-MM）
+      deliveryScore:
+        type: number
+        required: true
+        description: 交付评分（0-100）
+      qualityScore:
+        type: number
+        required: true
+        description: 质量评分（0-100）
+      complianceScore:
+        type: number
+        required: false
+        description: 合规评分（0-100）
+      overallScore:
+        type: number
+        required: false
+        description: 综合评分（0-100）
+      evaluator:
+        type: string
+        required: false
+        description: 评估人
+    links:
+      evaluates:
+        target: Supplier
+        foreign_key: supplierId
+
+actions:
+  createAllocation:
+    description: 创建物料分货计划
+    target_type: AllocationPlan
+    requires_confirmation: true
+    params:
+      materialId:
+        type: string
+        description: 物料ID
+        required: true
+      period:
+        type: string
+        description: 分配周期（YYYY-MM）
+        required: true
+      totalQuantity:
+        type: integer
+        description: 总分配量
+        required: true
+      strategy:
+        type: string
+        description: 分配策略
+        required: false
+    creates: true
+
+  adjustBatch:
+    description: 调整分货批次的分配数量
+    target_type: AllocationBatch
+    requires_confirmation: true
+    params:
+      batchId:
+        type: string
+        description: 批次ID
+        required: true
+      newQuantity:
+        type: integer
+        description: 调整后的分配数量
+        required: true
+      reason:
+        type: string
+        description: 调整原因
+        required: false
+    edits:
+      allocatedQty: newQuantity
+
+  confirmAllocation:
+    description: 确认分货批次，生成采购订单
+    target_type: AllocationBatch
+    params:
+      batchId:
+        type: string
+        description: 批次ID
+        required: true
+    edits:
+      status: confirmed
+
+  scoreSupplier:
+    description: 对供应商进行绩效评分
+    target_type: SupplierScore
+    params:
+      supplierId:
+        type: string
+        description: 供应商ID
+        required: true
+      period:
+        type: string
+        description: 评估周期（YYYY-MM）
+        required: true
+      deliveryScore:
+        type: number
+        description: 交付评分（0-100）
+        required: true
+      qualityScore:
+        type: number
+        description: 质量评分（0-100）
+        required: true
+      complianceScore:
+        type: number
+        description: 合规评分（0-100）
+        required: false
+    creates: true
+
+functions:
+  recommendAllocation:
+    description: 根据供应商能力、价格、质量等多维数据，推荐最优分货方案
+    params:
+      materialId:
+        type: string
+        description: 物料ID
+        required: true
+      totalQuantity:
+        type: integer
+        description: 需要分配的总数量
+        required: true
+      constraints:
+        type: dict
+        description: 约束条件（如 maxBudget, priorityRegion）
+        required: false
+    returns:
+      type: list
+      description: 各供应商的建议分配比例及预估成本
+
+  analyzeSupplyRisk:
+    description: 分析当前分货方案的供应风险
+    params:
+      planId:
+        type: string
+        description: 分货计划ID
+        required: true
+    returns:
+      type: object
+      description: 风险分析报告（risk_level, single_source_dependency, capacity_warnings）
+
+  compareSupplierProposals:
+    description: 对比不同供应商的方案
+    params:
+      supplierIds:
+        type: list<string>
+        description: 要对比的供应商ID列表
+        required: true
+      materialId:
+        type: string
+        description: 物料ID
+        required: true
+      quantity:
+        type: integer
+        description: 需求数量
+        required: true
+    returns:
+      type: list
+      description: 各供应商的对比结果（价格、时效、质量综合评分）
+
+  calculateCostEfficiency:
+    description: 计算供应商的成本效率（考虑价格、质量损失、交付延迟等综合成本）
+    params:
+      supplierId:
+        type: string
+        description: 供应商ID
+        required: true
+      materialId:
+        type: string
+        description: 物料ID
+        required: false
+    returns:
+      type: object
+      description: 成本效率分析结果

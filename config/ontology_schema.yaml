@@ -1,0 +1,89 @@
+object_types:
+  Person:
+    description: 人物节点
+    properties:
+      id:
+        type: string
+        required: true
+        description: 唯一标识符
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 姓名
+      age:
+        type: integer
+        required: false
+        description: 年龄
+      email:
+        type: string
+        required: false
+        description: 电子邮箱
+      created_at:
+        type: string
+        required: false
+        description: 创建时间
+  City:
+    description: 城市节点
+    properties:
+      id:
+        type: string
+        required: true
+        description: 城市编号
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 城市名称
+      country:
+        type: string
+        required: false
+        description: 所在国家
+      population:
+        type: integer
+        required: false
+        description: 人口数量
+  Company:
+    description: 公司节点
+    properties:
+      id:
+        type: string
+        required: true
+        description: 公司编号
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 公司名称
+      industry:
+        type: string
+        required: false
+        description: 所属行业
+      founded_year:
+        type: integer
+        required: false
+        description: 成立年份
+  Book:
+    description: 书籍节点
+    properties:
+      id:
+        type: string
+        required: true
+        description: 书籍编号
+        primary_key: true
+      title:
+        type: string
+        required: true
+        description: 书名
+      isbn:
+        type: string
+        required: false
+        description: 国际标准书号
+      published_year:
+        type: integer
+        required: false
+        description: 出版年份
+      genre:
+        type: string
+        required: false
+        description: 类型

@@ -1,0 +1,22 @@
+export interface TraceEvent {
+  id: string
+  conversation_id: string
+  turn_id: string
+  timestamp: string
+  layer: 'context' | 'query' | 'logic' | 'action' | 'governance' | 'simulation' | 'response'
+  name: string
+  status: 'started' | 'success' | 'failed' | 'denied' | 'pending_confirmation'
+  input_summary: Record<string, unknown>
+  output_summary: Record<string, unknown>
+  permission_result: 'pass' | 'deny' | 'not_applicable'
+  duration_ms: number
+  audit_id: string | null
+  error: string | null
+}
+
+export interface Message {
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: string
+  awaiting_confirmation?: boolean
+}

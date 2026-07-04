@@ -1,0 +1,202 @@
+object_types:
+  Person:
+    description: 人物节点
+    properties:
+      id:
+        type: string
+        required: true
+        description: 唯一标识符
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 姓名
+      age:
+        type: integer
+        required: false
+        description: 年龄
+      email:
+        type: string
+        required: false
+        description: 电子邮箱
+      occupation:
+        type: string
+        required: false
+        description: 职业
+  Organization:
+    description: 组织节点
+    properties:
+      id:
+        type: string
+        required: true
+        description: 组织编号
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 组织名称
+      type:
+        type: string
+        required: false
+        description: 组织类型（大学/公司/政府）
+      founded_year:
+        type: integer
+        required: false
+        description: 成立年份
+  City:
+    description: 城市节点
+    properties:
+      id:
+        type: string
+        required: true
+        description: 城市编号
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 城市名称
+      country:
+        type: string
+        required: false
+        description: 所在国家
+      population:
+        type: integer
+        required: false
+        description: 人口数量
+  Event:
+    description: 事件节点
+    properties:
+      id:
+        type: string
+        required: true
+        description: 事件编号
+        primary_key: true
+      name:
+        type: string
+        required: true
+        description: 事件名称
+      date:
+        type: string
+        required: false
+        description: 发生日期
+      location:
+        type: string
+        required: false
+        description: 举办地点
+      description:
+        type: string
+        required: false
+        description: 事件描述
+  Publication:
+    description: 出版物节点
+    properties:
+      id:
+        type: string
+        required: true
+        description: 出版物编号
+        primary_key: true
+      title:
+        type: string
+        required: true
+        description: 标题
+      doi:
+        type: string
+        required: false
+        description: 数字对象标识符
+      year:
+        type: integer
+        required: false
+        description: 出版年份
+links:
+  worksAt:
+    source_type: Person
+    target_type: Organization
+    description: 人员与所属组织的关系
+    properties:
+      role:
+        type: string
+        required: false
+        description: 在该组织的角色
+      start_date:
+        type: string
+        required: false
+        description: 入职日期
+  locatedIn:
+    source_type: Organization
+    target_type: City
+    description: 组织所在城市
+    properties: {}
+  attends:
+    source_type: Person
+    target_type: Event
+    description: 人员参加事件
+    properties:
+      role:
+        type: string
+        required: false
+        description: 参与角色（听众/演讲者/组织者）
+  authoredBy:
+    source_type: Publication
+    target_type: Person
+    description: 出版物的作者
+    properties:
+      order:
+        type: integer
+        required: false
+        description: 作者排序
+actions:
+  updatePersonInfo:
+    description: 更新人员基本信息
+    target_type: Person
+    params:
+      person_id:
+        type: string
+        description: 人员ID
+        required: true
+      name:
+        type: string
+        description: 新姓名
+        required: false
+      email:
+        type: string
+        description: 新邮箱
+        required: false
+    edits:
+    - target:
+        type: Person
+        ref: '{person_id}'
+      set:
+        name: '{name}'
+        email: '{email}'
+  transferEmployee:
+    description: 将员工从当前组织转移到新组织
+    target_type: Person
+    requires_confirmation: true
+    params:
+      person_id:
+        type: string
+        description: 员工ID
+        required: true
+      new_org_id:
+        type: string
+        description: 目标组织ID
+        required: true
+      new_role:
+        type: string
+        description: 新角色
+        required: false
+    edits:
+    - target:
+        type: Person
+        ref: '{person_id}'
+      set:
+        occupation: '{new_role}'
+    creates:
+    - type: link
+      link_type: worksAt
+      source_type: Person
+      source_ref: '{person_id}'
+      target_type: Organization
+      target_ref: '{new_org_id}'
+      properties:
+        role: '{new_role}'

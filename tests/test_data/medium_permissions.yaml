@@ -1,0 +1,17 @@
+# Permissions — 中等本体权限
+roles:
+  staff:
+    query_types: [Person, Organization, City, Event, Publication]
+    functions: []
+    actions:
+      updatePersonInfo: { requires_confirmation: false }
+      transferEmployee: { requires_confirmation: true }
+    data_scope: {}
+
+  admin:
+    query_types: [Person, Organization, City, Event, Publication]
+    functions: []
+    actions:
+      updatePersonInfo: { requires_confirmation: false }
+      transferEmployee: { requires_confirmation: false }
+    data_scope: {}

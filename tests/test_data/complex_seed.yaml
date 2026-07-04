@@ -1,0 +1,668 @@
+# Complex ontology seed data — 企业知识图谱演示数据
+Department:
+  - id: DEPT-001
+    name: 研发部
+    code: RD
+    budget: 5000000.0
+    head_count: 45
+    established_date: "2010-03-01"
+  - id: DEPT-002
+    name: 产品部
+    code: PM
+    budget: 3000000.0
+    head_count: 20
+    established_date: "2012-06-15"
+  - id: DEPT-003
+    name: 市场部
+    code: MKT
+    budget: 4000000.0
+    head_count: 25
+    established_date: "2011-01-10"
+  - id: DEPT-004
+    name: 人力资源部
+    code: HR
+    budget: 1500000.0
+    head_count: 12
+    established_date: "2010-03-01"
+
+Person:
+  - id: P-00001
+    name: 张伟
+    email: zhangwei@company.com
+    phone: "138-0001-0001"
+    department: DEPT-001
+    level: T6
+    skills: [Java, 分布式系统, 微服务架构, Kubernetes]
+    status: active
+    joined_at: "2018-03-15"
+    manager_id: null
+  - id: P-00002
+    name: 李娜
+    email: lina@company.com
+    phone: "138-0001-0002"
+    department: DEPT-001
+    level: T5
+    skills: [Python, 机器学习, 自然语言处理, 数据分析]
+    status: active
+    joined_at: "2019-07-01"
+    manager_id: P-00001
+  - id: P-00003
+    name: 王强
+    email: wangqiang@company.com
+    phone: "138-0001-0003"
+    department: DEPT-002
+    level: T5
+    skills: [产品设计, 用户研究, 数据分析, Figma]
+    status: active
+    joined_at: "2020-02-10"
+    manager_id: null
+  - id: P-00004
+    name: 赵敏
+    email: zhaomin@company.com
+    phone: "138-0001-0004"
+    department: DEPT-003
+    level: T4
+    skills: [市场营销, 内容运营, SEO, 品牌策略]
+    status: active
+    joined_at: "2021-06-20"
+    manager_id: null
+  - id: P-00005
+    name: 陈静
+    email: chenjing@company.com
+    phone: "138-0001-0005"
+    department: DEPT-001
+    level: T4
+    skills: [Java, 后端开发, 数据库设计, Redis]
+    status: active
+    joined_at: "2021-09-01"
+    manager_id: P-00001
+  - id: P-00006
+    name: 刘洋
+    email: liuyang@company.com
+    phone: "138-0001-0006"
+    department: DEPT-004
+    level: T3
+    skills: [招聘, 员工关系, 绩效管理]
+    status: active
+    joined_at: "2022-04-15"
+    manager_id: null
+  - id: P-00007
+    name: 孙丽
+    email: sunli@company.com
+    phone: "138-0001-0007"
+    department: DEPT-001
+    level: T5
+    skills: [前端开发, React, TypeScript, UI设计]
+    status: active
+    joined_at: "2020-11-01"
+    manager_id: P-00001
+  - id: P-00008
+    name: 周杰
+    email: zhoujie@company.com
+    phone: "138-0001-0008"
+    department: DEPT-002
+    level: T3
+    skills: [数据分析, SQL, Tableau, 市场调研]
+    status: active
+    joined_at: "2023-01-10"
+    manager_id: P-00003
+  - id: P-00009
+    name: 吴芳
+    email: wufang@company.com
+    phone: "138-0001-0009"
+    department: DEPT-003
+    level: T4
+    skills: [数字营销, 社交媒体, 广告投放]
+    status: leave
+    joined_at: "2021-03-01"
+    manager_id: P-00004
+  - id: P-00010
+    name: 郑涛
+    email: zhengtao@company.com
+    phone: "138-0001-0010"
+    department: DEPT-001
+    level: T5
+    skills: [Java, 系统架构, 云计算, Docker]
+    status: active
+    joined_at: "2019-08-20"
+    manager_id: P-00001
+  - id: P-00011
+    name: 马丽
+    email: mali@company.com
+    phone: "138-0001-0011"
+    department: DEPT-002
+    level: T4
+    skills: [产品规划, A/B测试, 用户增长]
+    status: inactive
+    joined_at: "2020-06-01"
+    manager_id: P-00003
+
+Project:
+  - id: PROJ-001
+    name: 智能客服平台
+    status: active
+    priority: high
+    start_date: "2025-01-15"
+    end_date: "2025-12-31"
+    budget: 2000000.0
+  - id: PROJ-002
+    name: 数据中台建设
+    status: active
+    priority: high
+    start_date: "2024-06-01"
+    end_date: "2025-06-30"
+    budget: 3500000.0
+  - id: PROJ-003
+    name: 新官网改版
+    status: completed
+    priority: medium
+    start_date: "2024-09-01"
+    end_date: "2025-03-31"
+    budget: 800000.0
+  - id: PROJ-004
+    name: 内部OA系统升级
+    status: on_hold
+    priority: low
+    start_date: "2025-04-01"
+    end_date: "2025-10-31"
+    budget: 500000.0
+  - id: PROJ-005
+    name: 智慧推荐引擎
+    status: planning
+    priority: high
+    start_date: "2025-07-01"
+    end_date: "2026-06-30"
+    budget: 2800000.0
+
+Skill:
+  - id: SKILL-001
+    name: Java
+    category: 编程语言
+    description: Java企业级开发
+  - id: SKILL-002
+    name: Python
+    category: 编程语言
+    description: Python数据分析与后端开发
+  - id: SKILL-003
+    name: 机器学习
+    category: 人工智能
+    description: 机器学习算法与模型训练
+  - id: SKILL-004
+    name: 分布式系统
+    category: 系统架构
+    description: 分布式系统设计与实现
+  - id: SKILL-005
+    name: 产品设计
+    category: 产品管理
+    description: 产品需求分析与原型设计
+  - id: SKILL-006
+    name: 数据分析
+    category: 数据处理
+    description: 数据采集、清洗与分析
+  - id: SKILL-007
+    name: 市场营销
+    category: 商业
+    description: 市场策略与推广执行
+  - id: SKILL-008
+    name: 前端开发
+    category: 编程语言
+    description: 前端页面开发与交互实现
+  - id: SKILL-009
+    name: 数据库设计
+    category: 系统架构
+    description: 数据库建模与SQL优化
+  - id: SKILL-010
+    name: 项目管理
+    category: 管理
+    description: 项目计划、进度与风险管理
+  - id: SKILL-011
+    name: 自然语言处理
+    category: 人工智能
+    description: NLP模型训练与应用开发
+  - id: SKILL-012
+    name: React
+    category: 前端框架
+    description: React前端框架开发
+  - id: SKILL-013
+    name: Kubernetes
+    category: 运维
+    description: 容器编排与集群管理
+
+Office:
+  - id: OFF-001
+    name: 北京总部
+    city: 北京
+    country: 中国
+    address: 北京市海淀区中关村大街88号
+  - id: OFF-002
+    name: 上海分部
+    city: 上海
+    country: 中国
+    address: 上海市浦东新区张江科技园12号楼
+  - id: OFF-003
+    name: 深圳办事处
+    city: 深圳
+    country: 中国
+    address: 深圳市南山区科技南路66号
+
+Meeting:
+  - id: MTG-001
+    title: 智能客服项目周会
+    date: "2025-06-16"
+    duration_minutes: 60
+    room: A-301
+    summary: 讨论本周开发进度、AI模型集成问题及上线计划
+  - id: MTG-002
+    title: 数据中台架构评审
+    date: "2025-06-18"
+    duration_minutes: 90
+    room: B-201
+    summary: 评审数据中台数据模型设计、ETL流程优化方案
+  - id: MTG-003
+    title: 年度产品规划会
+    date: "2025-06-10"
+    duration_minutes: 120
+    room: 多功能厅
+    summary: 讨论下半年产品路线图和资源分配方案
+  - id: MTG-004
+    title: 新员工入职培训
+    date: "2025-06-20"
+    duration_minutes: 180
+    room: 培训室C
+    summary: 公司文化和规章制度培训
+
+Document:
+  - id: DOC-001
+    title: 智能客服平台需求规格说明书
+    type: spec
+    version: v2.3
+    created_at: "2025-01-20"
+    content: 智能客服平台包含意图识别、对话管理、知识库等核心模块，支持多渠道接入。
+  - id: DOC-002
+    title: 数据中台设计方案
+    type: proposal
+    version: v1.5
+    created_at: "2024-07-10"
+    content: 数据中台采用Lambda架构，支持实时与离线数据计算。
+  - id: DOC-003
+    title: Q2项目进度报告
+    type: report
+    version: v1.0
+    created_at: "2025-06-30"
+    content: Q2完成智能客服MVP版本发布，数据中台完成二期迁移。
+  - id: DOC-004
+    title: 6月产品迭代会议纪要
+    type: meeting_notes
+    version: v1.0
+    created_at: "2025-06-11"
+    content: 确定7月迭代范围，优先完成用户反馈集中的三个功能改进。
+
+KPI:
+  - id: KPI-001
+    name: 代码质量覆盖率
+    value: 85.0
+    target: 90.0
+    unit: "%"
+    period: 2025-Q2
+  - id: KPI-002
+    name: 项目交付准时率
+    value: 75.0
+    target: 95.0
+    unit: "%"
+    period: 2025-Q2
+  - id: KPI-003
+    name: Bug修复率
+    value: 92.0
+    target: 95.0
+    unit: "%"
+    period: 2025-Q2
+  - id: KPI-004
+    name: 员工满意度
+    value: 82.0
+    target: 85.0
+    unit: "分"
+    period: 2025-H1
+  - id: KPI-005
+    name: 项目预算执行率
+    value: 68.0
+    target: 100.0
+    unit: "%"
+    period: 2025-Q2
+
+links:
+  belongsTo:
+    - source: P-00001
+      target: DEPT-001
+      properties:
+        start_date: "2018-03-15"
+        end_date: null
+    - source: P-00002
+      target: DEPT-001
+      properties:
+        start_date: "2019-07-01"
+        end_date: null
+    - source: P-00003
+      target: DEPT-002
+      properties:
+        start_date: "2020-02-10"
+        end_date: null
+    - source: P-00004
+      target: DEPT-003
+      properties:
+        start_date: "2021-06-20"
+        end_date: null
+    - source: P-00005
+      target: DEPT-001
+      properties:
+        start_date: "2021-09-01"
+        end_date: null
+    - source: P-00006
+      target: DEPT-004
+      properties:
+        start_date: "2022-04-15"
+        end_date: null
+    - source: P-00007
+      target: DEPT-001
+      properties:
+        start_date: "2020-11-01"
+        end_date: null
+    - source: P-00008
+      target: DEPT-002
+      properties:
+        start_date: "2023-01-10"
+        end_date: null
+    - source: P-00009
+      target: DEPT-003
+      properties:
+        start_date: "2021-03-01"
+        end_date: "2025-05-30"
+    - source: P-00010
+      target: DEPT-001
+      properties:
+        start_date: "2019-08-20"
+        end_date: null
+    - source: P-00011
+      target: DEPT-002
+      properties:
+        start_date: "2020-06-01"
+        end_date: null
+
+  participatesIn:
+    - source: P-00001
+      target: PROJ-001
+      properties:
+        role: project_manager
+        allocation_percentage: 40
+        start_date: "2025-01-15"
+    - source: P-00002
+      target: PROJ-001
+      properties:
+        role: developer
+        allocation_percentage: 60
+        start_date: "2025-01-15"
+    - source: P-00005
+      target: PROJ-001
+      properties:
+        role: developer
+        allocation_percentage: 80
+        start_date: "2025-01-15"
+    - source: P-00007
+      target: PROJ-001
+      properties:
+        role: designer
+        allocation_percentage: 30
+        start_date: "2025-02-01"
+    - source: P-00001
+      target: PROJ-002
+      properties:
+        role: project_manager
+        allocation_percentage: 50
+        start_date: "2024-06-01"
+    - source: P-00010
+      target: PROJ-002
+      properties:
+        role: developer
+        allocation_percentage: 100
+        start_date: "2024-06-01"
+    - source: P-00002
+      target: PROJ-002
+      properties:
+        role: developer
+        allocation_percentage: 30
+        start_date: "2024-09-01"
+    - source: P-00003
+      target: PROJ-003
+      properties:
+        role: project_manager
+        allocation_percentage: 50
+        start_date: "2024-09-01"
+    - source: P-00007
+      target: PROJ-003
+      properties:
+        role: developer
+        allocation_percentage: 60
+        start_date: "2024-09-01"
+    - source: P-00008
+      target: PROJ-003
+      properties:
+        role: tester
+        allocation_percentage: 30
+        start_date: "2024-09-01"
+    - source: P-00004
+      target: PROJ-004
+      properties:
+        role: project_manager
+        allocation_percentage: 20
+        start_date: "2025-04-01"
+    - source: P-00002
+      target: PROJ-005
+      properties:
+        role: developer
+        allocation_percentage: 10
+        start_date: "2025-07-01"
+
+  hasSkill:
+    - source: P-00001
+      target: SKILL-001
+      properties:
+        proficiency: 5
+        certified: true
+    - source: P-00001
+      target: SKILL-004
+      properties:
+        proficiency: 4
+        certified: true
+    - source: P-00001
+      target: SKILL-013
+      properties:
+        proficiency: 4
+        certified: false
+    - source: P-00002
+      target: SKILL-002
+      properties:
+        proficiency: 5
+        certified: true
+    - source: P-00002
+      target: SKILL-003
+      properties:
+        proficiency: 4
+        certified: true
+    - source: P-00002
+      target: SKILL-011
+      properties:
+        proficiency: 4
+        certified: false
+    - source: P-00003
+      target: SKILL-005
+      properties:
+        proficiency: 5
+        certified: false
+    - source: P-00003
+      target: SKILL-006
+      properties:
+        proficiency: 3
+        certified: false
+    - source: P-00004
+      target: SKILL-007
+      properties:
+        proficiency: 4
+        certified: false
+    - source: P-00005
+      target: SKILL-001
+      properties:
+        proficiency: 4
+        certified: true
+    - source: P-00005
+      target: SKILL-009
+      properties:
+        proficiency: 4
+        certified: false
+    - source: P-00007
+      target: SKILL-008
+      properties:
+        proficiency: 5
+        certified: false
+    - source: P-00007
+      target: SKILL-012
+      properties:
+        proficiency: 4
+        certified: true
+    - source: P-00010
+      target: SKILL-001
+      properties:
+        proficiency: 5
+        certified: true
+    - source: P-00010
+      target: SKILL-004
+      properties:
+        proficiency: 4
+        certified: false
+    - source: P-00008
+      target: SKILL-006
+      properties:
+        proficiency: 3
+        certified: false
+
+  locatedAt:
+    - source: P-00001
+      target: OFF-001
+      properties:
+        desk_number: A-1201
+        is_primary: true
+    - source: P-00002
+      target: OFF-001
+      properties:
+        desk_number: A-1203
+        is_primary: true
+    - source: P-00003
+      target: OFF-001
+      properties:
+        desk_number: B-0501
+        is_primary: true
+    - source: P-00004
+      target: OFF-001
+      properties:
+        desk_number: B-0602
+        is_primary: true
+    - source: P-00005
+      target: OFF-001
+      properties:
+        desk_number: A-1205
+        is_primary: true
+    - source: P-00006
+      target: OFF-001
+      properties:
+        desk_number: C-0803
+        is_primary: true
+    - source: P-00007
+      target: OFF-001
+      properties:
+        desk_number: A-1207
+        is_primary: true
+    - source: P-00008
+      target: OFF-002
+      properties:
+        desk_number: D-0210
+        is_primary: true
+    - source: P-00010
+      target: OFF-001
+      properties:
+        desk_number: A-1202
+        is_primary: true
+    - source: P-00011
+      target: OFF-002
+      properties:
+        desk_number: D-0212
+        is_primary: true
+
+  manages:
+    - source: P-00001
+      target: PROJ-001
+      properties:
+        role: project_manager
+    - source: P-00001
+      target: PROJ-002
+      properties:
+        role: project_manager
+    - source: P-00003
+      target: PROJ-003
+      properties:
+        role: project_manager
+    - source: P-00004
+      target: PROJ-004
+      properties:
+        role: project_manager
+
+  references:
+    - source: DOC-001
+      target: P-00001
+      properties:
+        mention_type: author
+    - source: DOC-001
+      target: P-00002
+      properties:
+        mention_type: contributor
+    - source: DOC-002
+      target: P-00001
+      properties:
+        mention_type: author
+    - source: DOC-002
+      target: P-00010
+      properties:
+        mention_type: contributor
+    - source: DOC-003
+      target: P-00001
+      properties:
+        mention_type: author
+
+  relatedTo:
+    - source: PROJ-001
+      target: PROJ-002
+      properties:
+        relationship: dependency
+    - source: PROJ-005
+      target: PROJ-001
+      properties:
+        relationship: related
+
+  tracks:
+    - source: KPI-001
+      target: PROJ-001
+      properties:
+        weight: 0.3
+    - source: KPI-002
+      target: PROJ-001
+      properties:
+        weight: 0.4
+    - source: KPI-003
+      target: PROJ-001
+      properties:
+        weight: 0.3
+    - source: KPI-002
+      target: PROJ-002
+      properties:
+        weight: 0.5
+    - source: KPI-005
+      target: PROJ-002
+      properties:
+        weight: 0.5

@@ -1,0 +1,28 @@
+# Procurement permissions — 采购供应商分货权限
+roles:
+  procurement_analyst:
+    query_types: [Material, Supplier, AllocationPlan, AllocationBatch, PurchaseOrder, SupplierScore]
+    functions: [recommendAllocation, compareSupplierProposals, calculateCostEfficiency]
+    actions:
+      scoreSupplier: { requires_confirmation: false }
+    data_scope: {}
+
+  procurement_manager:
+    query_types: [Material, Supplier, AllocationPlan, AllocationBatch, PurchaseOrder, SupplierScore]
+    functions: [recommendAllocation, analyzeSupplyRisk, compareSupplierProposals, calculateCostEfficiency]
+    actions:
+      createAllocation: { requires_confirmation: true }
+      adjustBatch: { requires_confirmation: true }
+      confirmAllocation: { requires_confirmation: false }
+      scoreSupplier: { requires_confirmation: false }
+    data_scope: {}
+
+  admin:
+    query_types: [Material, Supplier, AllocationPlan, AllocationBatch, PurchaseOrder, SupplierScore]
+    functions: [recommendAllocation, analyzeSupplyRisk, compareSupplierProposals, calculateCostEfficiency]
+    actions:
+      createAllocation: { requires_confirmation: false }
+      adjustBatch: { requires_confirmation: false }
+      confirmAllocation: { requires_confirmation: false }
+      scoreSupplier: { requires_confirmation: false }
+    data_scope: {}

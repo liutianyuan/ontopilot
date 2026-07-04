@@ -1,0 +1,386 @@
+# Logistics seed data — 物流运营测试数据
+Warehouse:
+  - warehouseId: WH-SC-001
+    name: 华南中心仓
+    region: 华南
+    capacity: 800
+    backlog: 65
+    backlogDelayHours: 12.0
+  - warehouseId: WH-SC-002
+    name: 华南保税仓
+    region: 华南
+    capacity: 300
+    backlog: 10
+    backlogDelayHours: 2.0
+  - warehouseId: WH-EC-001
+    name: 华东中心仓
+    region: 华东
+    capacity: 600
+    backlog: 20
+    backlogDelayHours: 4.0
+  - warehouseId: WH-NC-001
+    name: 华北中心仓
+    region: 华北
+    capacity: 400
+    backlog: 55
+    backlogDelayHours: 10.0
+
+Carrier:
+  - carrierId: CARRIER-A
+    name: 顺达物流
+    performanceScore: 55
+    delayRate: 0.22
+    pricePerKg: 2.5
+    avgTransitHours: 36
+    availableCapacity: 200
+  - carrierId: CARRIER-B
+    name: 中通速运
+    performanceScore: 78
+    delayRate: 0.08
+    pricePerKg: 4.0
+    avgTransitHours: 24
+    availableCapacity: 150
+  - carrierId: CARRIER-C
+    name: 极速专配
+    performanceScore: 92
+    delayRate: 0.03
+    pricePerKg: 7.5
+    avgTransitHours: 12
+    availableCapacity: 50
+  - carrierId: CARRIER-D
+    name: 中铁快运
+    performanceScore: 70
+    delayRate: 0.12
+    pricePerKg: 3.2
+    avgTransitHours: 30
+    availableCapacity: 300
+  - carrierId: CARRIER-E
+    name: 跨越速运
+    performanceScore: 85
+    delayRate: 0.05
+    pricePerKg: 5.8
+    avgTransitHours: 18
+    availableCapacity: 80
+
+Customer:
+  - customerId: CUST-001
+    name: XX电子科技
+    serviceLevel: VIP
+    region: 华南
+  - customerId: CUST-002
+    name: YY智能设备
+    serviceLevel: premium
+    region: 华南
+  - customerId: CUST-003
+    name: ZZ零售集团
+    serviceLevel: standard
+    region: 华东
+  - customerId: CUST-004
+    name: WW精密制造
+    serviceLevel: premium
+    region: 华东
+  - customerId: CUST-005
+    name: VV电子商务
+    serviceLevel: standard
+    region: 华北
+  - customerId: CUST-006
+    name: TT医疗器械
+    serviceLevel: VIP
+    region: 华北
+
+Order:
+  - orderId: ORD-001
+    customerId: CUST-001
+    priority: urgent
+    orderValue: 50000.0
+    requiredDeliveryDate: "2026-06-30T18:00:00+00:00"
+  - orderId: ORD-002
+    customerId: CUST-002
+    priority: high
+    orderValue: 30000.0
+    requiredDeliveryDate: "2026-07-02T12:00:00+00:00"
+  - orderId: ORD-003
+    customerId: CUST-003
+    priority: medium
+    orderValue: 8000.0
+    requiredDeliveryDate: "2026-07-05T18:00:00+00:00"
+  - orderId: ORD-004
+    customerId: CUST-001
+    priority: high
+    orderValue: 25000.0
+    requiredDeliveryDate: "2026-07-01T09:00:00+00:00"
+  - orderId: ORD-005
+    customerId: CUST-002
+    priority: medium
+    orderValue: 15000.0
+    requiredDeliveryDate: "2026-07-08T18:00:00+00:00"
+  - orderId: ORD-006
+    customerId: CUST-003
+    priority: low
+    orderValue: 3000.0
+    requiredDeliveryDate: "2026-07-15T18:00:00+00:00"
+  - orderId: ORD-007
+    customerId: CUST-004
+    priority: high
+    orderValue: 40000.0
+    requiredDeliveryDate: "2026-07-03T18:00:00+00:00"
+  - orderId: ORD-008
+    customerId: CUST-005
+    priority: medium
+    orderValue: 12000.0
+    requiredDeliveryDate: "2026-07-10T18:00:00+00:00"
+  - orderId: ORD-009
+    customerId: CUST-001
+    priority: urgent
+    orderValue: 75000.0
+    requiredDeliveryDate: "2026-06-29T12:00:00+00:00"
+  - orderId: ORD-010
+    customerId: CUST-004
+    priority: low
+    orderValue: 5000.0
+    requiredDeliveryDate: "2026-07-20T18:00:00+00:00"
+  - orderId: ORD-011
+    customerId: CUST-006
+    priority: urgent
+    orderValue: 90000.0
+    requiredDeliveryDate: "2026-06-28T18:00:00+00:00"
+  - orderId: ORD-012
+    customerId: CUST-005
+    priority: high
+    orderValue: 22000.0
+    requiredDeliveryDate: "2026-07-04T12:00:00+00:00"
+
+Shipment:
+  # ── 华南仓发货 ──
+  - shipmentId: SH-0001
+    orderId: ORD-001
+    status: delayed
+    ETA: "2026-06-30T22:00:00+00:00"
+    originalETA: "2026-06-29T18:00:00+00:00"
+    delayReason: 承运商运力不足
+    carrierId: CARRIER-A
+    warehouseId: WH-SC-001
+    weightKg: 45.5
+  - shipmentId: SH-0002
+    orderId: ORD-002
+    status: delayed
+    ETA: "2026-07-03T08:00:00+00:00"
+    originalETA: "2026-07-01T12:00:00+00:00"
+    delayReason: 仓库积压
+    carrierId: CARRIER-A
+    warehouseId: WH-SC-001
+    weightKg: 28.0
+  - shipmentId: SH-0003
+    orderId: ORD-004
+    status: delayed
+    ETA: "2026-07-02T14:00:00+00:00"
+    originalETA: "2026-07-01T09:00:00+00:00"
+    delayReason: 天气原因
+    carrierId: CARRIER-B
+    warehouseId: WH-SC-001
+    weightKg: 33.0
+  - shipmentId: SH-0004
+    orderId: ORD-001
+    status: delayed
+    ETA: "2026-07-01T10:00:00+00:00"
+    originalETA: "2026-06-30T18:00:00+00:00"
+    delayReason: 路线调整
+    carrierId: CARRIER-B
+    warehouseId: WH-SC-001
+    weightKg: 18.0
+  - shipmentId: SH-0005
+    orderId: ORD-009
+    status: delayed
+    ETA: "2026-06-29T20:00:00+00:00"
+    originalETA: "2026-06-29T12:00:00+00:00"
+    delayReason: 仓库积压
+    carrierId: CARRIER-A
+    warehouseId: WH-SC-001
+    weightKg: 61.0
+  - shipmentId: SH-0006
+    orderId: ORD-002
+    status: in_transit
+    ETA: "2026-07-02T12:00:00+00:00"
+    originalETA: "2026-07-02T12:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-C
+    warehouseId: WH-SC-001
+    weightKg: 22.0
+  - shipmentId: SH-0007
+    orderId: ORD-009
+    status: in_transit
+    ETA: "2026-06-29T06:00:00+00:00"
+    originalETA: "2026-06-29T12:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-C
+    warehouseId: WH-SC-001
+    weightKg: 35.0
+  - shipmentId: SH-0008
+    orderId: ORD-005
+    status: in_transit
+    ETA: "2026-07-07T18:00:00+00:00"
+    originalETA: "2026-07-08T18:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-B
+    warehouseId: WH-SC-001
+    weightKg: 27.0
+  - shipmentId: SH-0009
+    orderId: ORD-003
+    status: in_transit
+    ETA: "2026-07-04T08:00:00+00:00"
+    originalETA: "2026-07-05T18:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-A
+    warehouseId: WH-SC-001
+    weightKg: 12.0
+  - shipmentId: SH-0010
+    orderId: ORD-006
+    status: pending
+    ETA: "2026-07-15T18:00:00+00:00"
+    originalETA: "2026-07-15T18:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-B
+    warehouseId: WH-SC-001
+    weightKg: 8.0
+  - shipmentId: SH-0011
+    orderId: ORD-004
+    status: delayed
+    ETA: "2026-07-02T18:00:00+00:00"
+    originalETA: "2026-07-01T09:00:00+00:00"
+    delayReason: 承运商延误
+    carrierId: CARRIER-A
+    warehouseId: WH-SC-001
+    weightKg: 39.0
+  - shipmentId: SH-0012
+    orderId: ORD-005
+    status: pending
+    ETA: "2026-07-09T12:00:00+00:00"
+    originalETA: "2026-07-08T18:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-D
+    warehouseId: WH-SC-001
+    weightKg: 19.0
+  - shipmentId: SH-0013
+    orderId: ORD-003
+    status: in_transit
+    ETA: "2026-07-04T14:00:00+00:00"
+    originalETA: "2026-07-05T18:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-C
+    warehouseId: WH-SC-001
+    weightKg: 10.0
+
+  # ── 华东仓发货 ──
+  - shipmentId: SH-0101
+    orderId: ORD-007
+    status: delayed
+    ETA: "2026-07-05T08:00:00+00:00"
+    originalETA: "2026-07-03T18:00:00+00:00"
+    delayReason: 承运商延误
+    carrierId: CARRIER-A
+    warehouseId: WH-EC-001
+    weightKg: 52.0
+  - shipmentId: SH-0102
+    orderId: ORD-007
+    status: in_transit
+    ETA: "2026-07-04T10:00:00+00:00"
+    originalETA: "2026-07-03T18:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-B
+    warehouseId: WH-EC-001
+    weightKg: 44.0
+  - shipmentId: SH-0103
+    orderId: ORD-010
+    status: pending
+    ETA: "2026-07-18T12:00:00+00:00"
+    originalETA: "2026-07-20T18:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-C
+    warehouseId: WH-EC-001
+    weightKg: 35.0
+  - shipmentId: SH-0104
+    orderId: ORD-008
+    status: delivered
+    ETA: "2026-07-08T10:00:00+00:00"
+    originalETA: "2026-07-10T18:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-C
+    warehouseId: WH-EC-001
+    weightKg: 20.0
+  - shipmentId: SH-0105
+    orderId: ORD-010
+    status: pending
+    ETA: "2026-07-19T14:00:00+00:00"
+    originalETA: "2026-07-20T18:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-D
+    warehouseId: WH-EC-001
+    weightKg: 42.0
+
+  # ── 华北仓发货 ──
+  - shipmentId: SH-0201
+    orderId: ORD-011
+    status: delayed
+    ETA: "2026-06-29T14:00:00+00:00"
+    originalETA: "2026-06-28T18:00:00+00:00"
+    delayReason: 恶劣天气
+    carrierId: CARRIER-A
+    warehouseId: WH-NC-001
+    weightKg: 75.0
+  - shipmentId: SH-0202
+    orderId: ORD-011
+    status: in_transit
+    ETA: "2026-06-29T06:00:00+00:00"
+    originalETA: "2026-06-28T18:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-E
+    warehouseId: WH-NC-001
+    weightKg: 50.0
+  - shipmentId: SH-0203
+    orderId: ORD-012
+    status: delayed
+    ETA: "2026-07-05T08:00:00+00:00"
+    originalETA: "2026-07-04T12:00:00+00:00"
+    delayReason: 承运商运力不足
+    carrierId: CARRIER-D
+    warehouseId: WH-NC-001
+    weightKg: 30.0
+  - shipmentId: SH-0204
+    orderId: ORD-012
+    status: pending
+    ETA: "2026-07-05T18:00:00+00:00"
+    originalETA: "2026-07-04T12:00:00+00:00"
+    delayReason: null
+    carrierId: CARRIER-E
+    warehouseId: WH-NC-001
+    weightKg: 25.0
+
+ExceptionCase:
+  - caseId: EXC-001
+    shipmentId: SH-0001
+    reason: 承运商顺达物流近期多次延误，需评估是否更换承运商
+    priority: high
+    status: open
+    createdBy: dispatcher_001
+    createdAt: "2026-06-28T09:00:00+00:00"
+  - caseId: EXC-002
+    shipmentId: SH-0201
+    reason: 华北地区暴雨导致OR-011-医用设备运输严重延误
+    priority: high
+    status: in_progress
+    createdBy: dispatcher_001
+    createdAt: "2026-06-28T14:00:00+00:00"
+  - caseId: EXC-003
+    shipmentId: SH-0005
+    reason: ORD-009 VIP客户订单仓库积压超48小时
+    priority: medium
+    status: open
+    createdBy: dispatcher_001
+    createdAt: "2026-06-27T10:00:00+00:00"
+  - caseId: EXC-004
+    shipmentId: SH-0101
+    reason: ORD-007华东仓承运商延误，客户催单
+    priority: medium
+    status: resolved
+    createdBy: dispatcher_001
+    createdAt: "2026-06-25T08:00:00+00:00"

@@ -1,0 +1,36 @@
+# Context sources for logistics test — 物流运营测试上下文
+context_sources:
+  - type: fixed_objects
+    object_type: Warehouse
+    variable: bound_warehouse_id
+    properties:
+      - warehouseId
+      - name
+      - region
+      - capacity
+      - backlog
+      - backlogDelayHours
+
+  - type: scoped_query
+    object_type: Shipment
+    filters:
+      warehouseId: "${session.bound_warehouse_id}"
+      status: [delayed, in_transit]
+    properties:
+      - shipmentId
+      - status
+      - ETA
+      - delayReason
+      - carrierId
+      - orderId
+    max_objects: 20
+
+  - type: scoped_query
+    object_type: Order
+    properties:
+      - orderId
+      - customerId
+      - priority
+      - orderValue
+      - requiredDeliveryDate
+    max_objects: 20

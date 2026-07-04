@@ -1,0 +1,20 @@
+# Context sources for medium ontology — 中等本体上下文
+context_sources:
+  - type: scoped_query
+    object_type: Person
+    properties:
+      - id
+      - name
+      - age
+      - email
+      - occupation
+    max_objects: 10
+
+  - type: scoped_query
+    object_type: Organization
+    properties:
+      - id
+      - name
+      - type
+      - founded_year
+    max_objects: 10

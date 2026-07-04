@@ -1,0 +1,75 @@
+# Context sources for procurement ontology — 采购供应商分货上下文
+context_sources:
+  - type: fixed_objects
+    object_type: Supplier
+    properties:
+      - supplierId
+      - name
+      - region
+      - capacity
+      - yieldRate
+      - deliveryTimeliness
+      - qualityScore
+      - priceIndex
+      - leadTimeDays
+      - certLevel
+
+  - type: scoped_query
+    object_type: Material
+    properties:
+      - materialId
+      - name
+      - category
+      - margin
+      - label
+      - annualDemand
+      - currentStock
+      - status
+    max_objects: 20
+
+  - type: scoped_query
+    object_type: AllocationPlan
+    properties:
+      - planId
+      - materialId
+      - period
+      - totalQuantity
+      - status
+      - strategy
+    max_objects: 15
+
+  - type: scoped_query
+    object_type: AllocationBatch
+    properties:
+      - batchId
+      - planId
+      - supplierId
+      - materialId
+      - allocatedQty
+      - confirmedQty
+      - deliveredQty
+      - status
+    max_objects: 20
+
+  - type: scoped_query
+    object_type: PurchaseOrder
+    properties:
+      - orderId
+      - supplierId
+      - materialId
+      - quantity
+      - totalAmount
+      - status
+    max_objects: 20
+
+  - type: scoped_query
+    object_type: SupplierScore
+    properties:
+      - scoreId
+      - supplierId
+      - period
+      - deliveryScore
+      - qualityScore
+      - complianceScore
+      - overallScore
+    max_objects: 20

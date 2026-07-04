@@ -1,0 +1,16 @@
+users:
+- display_name: 超级管理员
+  id: admin_001
+  password: admin123
+  role: admin
+  username: admin
+- display_name: 调度员
+  id: dispatcher_001
+  password: disp123
+  role: dispatcher
+  username: dispatcher
+- display_name: 区域经理
+  id: manager_001
+  password: mgr123
+  role: regional_manager
+  username: manager

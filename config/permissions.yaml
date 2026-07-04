@@ -1,0 +1,13 @@
+# Permissions — 简单本体权限
+roles:
+  viewer:
+    query_types: [Person, City, Company, Book]
+    functions: []
+    actions: {}
+    data_scope: {}
+
+  admin:
+    query_types: [Person, City, Company, Book]
+    functions: []
+    actions: {}
+    data_scope: {}

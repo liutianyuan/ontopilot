@@ -1,0 +1,29 @@
+# ============================================================
+# OntoPilot configuration template
+# Copy this to settings.yaml and fill in your API keys.
+#   cp config/settings.yaml.example config/settings.yaml
+# ============================================================
+active_model_id: model-default
+
+models:
+  # Anthropic Claude
+  - id: model-default
+    name: "Anthropic Claude"
+    provider: anthropic
+    model: claude-sonnet-4-5
+    api_key_env: ANTHROPIC_API_KEY
+    api_key: ""
+    base_url: ""
+    max_tokens: 4096
+    temperature: 0
+
+  # DeepSeek (OpenAI-compatible)
+  - id: model-mqqgwumv
+    name: "deepseek-v4-flash"
+    provider: openai_compatible
+    model: deepseek-v4-flash
+    api_key_env: DEEPSEEK_API_KEY
+    api_key: ""
+    base_url: "https://api.deepseek.com"
+    max_tokens: 32000
+    temperature: 0

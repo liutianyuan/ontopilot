@@ -142,6 +142,6 @@ MIT
 
 <div align="center">
 
-[![GitHub Stars](https://img.shields.io/github/stars/jingw2/ontopilot?style=social)](https://github.com/jingw2/ontopilot)
+[![Star History Chart](https://api.star-history.com/svg?repos=jingw2/ontopilot&type=Date)](https://star-history.com/#jingw2/ontopilot&Date)
 
 </div>

@@ -43,7 +43,15 @@ export function LoginPage({ onLogin }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: selected, password }),
       })
-      const data = await res.json()
+      const body = await res.text()
+      let data: any
+      try {
+        data = JSON.parse(body)
+      } catch {
+        throw new Error(
+          `服务器返回了非 JSON 响应（HTTP ${res.status}）。请检查后端服务是否已启动（python main.py）。`
+        )
+      }
       if (!res.ok) throw new Error(data.detail || '登录失败')
       const user = data.user as LoginUser
       const extra = ROLE_MAP[user.role] || { warehouse: '', userId: user.id }

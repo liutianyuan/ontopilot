@@ -41,6 +41,7 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
 
   useEffect(() => {
     if (!ontologyId) return
+    let ignore = false
     setLoading(true)
     setError(false)
     fetch(`/api/ontology/detail/${ontologyId}`)
@@ -48,9 +49,18 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
         if (!res.ok) throw new Error('bad status')
         return res.json()
       })
-      .then((data: OntologyDetail) => setObjectTypes(data.object_types || []))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false))
+      .then((data: OntologyDetail) => {
+        if (!ignore) setObjectTypes(data.object_types || [])
+      })
+      .catch(() => {
+        if (!ignore) setError(true)
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false)
+      })
+    return () => {
+      ignore = true
+    }
   }, [ontologyId])
 
   useEffect(() => {
@@ -126,8 +136,8 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
     | undefined
 
   const nodeColor = (id: string) => {
-    if (involvedTypes?.mutated.includes(id)) return { fill: '#fef3c7', stroke: '#d97706' }
-    if (involvedTypes?.referenced.includes(id)) return { fill: '#dbeafe', stroke: '#2563eb' }
+    if (involvedTypes?.mutated?.includes(id)) return { fill: '#fef3c7', stroke: '#d97706' }
+    if (involvedTypes?.referenced?.includes(id)) return { fill: '#dbeafe', stroke: '#2563eb' }
     return { fill: '#eef2ff', stroke: '#6366f1' }
   }
 

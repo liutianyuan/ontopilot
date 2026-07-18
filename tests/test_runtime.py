@@ -171,3 +171,16 @@ def test_call_function_other_functions_stay_logic_layer(tmp_path):
     assert len(trace) == 1
     assert trace[0].layer == "logic"
     assert "involved_types" not in trace[0].output_summary
+
+
+def test_call_function_compare_decisions_empty_options_still_tags_simulation(tmp_path):
+    runtime = make_logistics_runtime(tmp_path)
+    runtime.call_function(
+        user_id="admin_001", role="admin", function_name="compareDecisions",
+        params={"shipmentId": "SH-0001", "options": []},
+        turn_id="test-turn-5",
+    )
+    trace = runtime.get_trace_events("test-turn-5")
+    sim_events = [e for e in trace if e.layer == "simulation"]
+    assert len(sim_events) == 1
+    assert sim_events[0].output_summary["involved_types"] == {"mutated": [], "referenced": []}

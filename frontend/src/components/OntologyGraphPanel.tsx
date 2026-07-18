@@ -64,6 +64,7 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
   }, [ontologyId])
 
   useEffect(() => {
+    setHover(null)
     if (objectTypes.length === 0) {
       setNodes([])
       setRenderLinks([])

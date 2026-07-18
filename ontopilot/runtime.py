@@ -217,8 +217,8 @@ class OntologyRuntime:
         ms = int((time.monotonic() - t0) * 1000)
         out_summary = {"result_count": len(result)} if isinstance(result, list) else {"result": str(result)[:200]}
         layer = "logic"
-        if function_name == "compareDecisions" and isinstance(result, list) and result:
-            out_summary["involved_types"] = result[0]["involved_types"]
+        if function_name == "compareDecisions" and isinstance(result, list):
+            out_summary["involved_types"] = result[0]["involved_types"] if result else {"mutated": [], "referenced": []}
             layer = "simulation"
         audit_id = self._audit.log(user_id, "function", None, None,
                                    {"function": function_name, "params": params}, out_summary, "pass")

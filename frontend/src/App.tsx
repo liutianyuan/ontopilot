@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { ChatPanel } from './components/ChatPanel'
 import { TracePanel } from './components/TracePanel'
+import { OntologyGraphPanel } from './components/OntologyGraphPanel'
 import { Sidebar, ViewType } from './components/Sidebar'
 import { ModelConfigPanel } from './components/ModelConfigPanel'
 import { OntologyConfigPanel } from './components/OntologyConfigPanel'
@@ -49,7 +50,7 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
   const [activeView, setActiveView] = useState<ViewType>('chat')
-  const [showPanels, setShowPanels] = useState(false)
+  const [rightPanel, setRightPanel] = useState<'trace' | 'ontology' | null>(null)
   const [startedChat, setStartedChat] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [showWelcome, setShowWelcome] = useState(true)
@@ -333,14 +334,24 @@ export default function App() {
                 + 新对话
               </button>
               <button
-                onClick={() => setShowPanels(!showPanels)}
+                onClick={() => setRightPanel(rightPanel === 'trace' ? null : 'trace')}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                  showPanels
+                  rightPanel === 'trace'
                     ? 'bg-indigo-100 text-indigo-700'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                {showPanels ? '隐藏推理过程' : '推理过程'}
+                推理过程
+              </button>
+              <button
+                onClick={() => setRightPanel(rightPanel === 'ontology' ? null : 'ontology')}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  rightPanel === 'ontology'
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                本体可视化
               </button>
               <button
                 onClick={handleLogout}
@@ -432,7 +443,7 @@ export default function App() {
             )}
 
             {/* Chat area */}
-            <div className={`flex flex-col ${showPanels ? 'w-1/2' : 'flex-1'} transition-all`}>
+            <div className={`flex flex-col ${rightPanel ? 'w-1/2' : 'flex-1'} transition-all`}>
               <ChatPanel
                 messages={messages}
                 onSend={sendMessage}
@@ -441,14 +452,24 @@ export default function App() {
               />
             </div>
 
-            {/* Trace panel */}
-            {showPanels && (
+            {/* Trace / ontology panel */}
+            {rightPanel === 'trace' && (
               <div className="w-1/2 flex flex-col border-l bg-white">
                 <div className="px-4 py-2 bg-gray-50 border-b text-xs font-medium text-gray-500 uppercase tracking-wider">
                   推理过程
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <TracePanel events={traceEvents} />
+                </div>
+              </div>
+            )}
+            {rightPanel === 'ontology' && (
+              <div className="w-1/2 flex flex-col border-l bg-white">
+                <div className="px-4 py-2 bg-gray-50 border-b text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  本体可视化
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <OntologyGraphPanel ontologyId={selectedOntology} traceEvents={traceEvents} />
                 </div>
               </div>
             )}

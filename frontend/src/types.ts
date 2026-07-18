@@ -20,3 +20,28 @@ export interface Message {
   timestamp: string
   awaiting_confirmation?: boolean
 }
+
+export interface OntologyProperty {
+  name: string
+  type: string
+  description: string
+}
+
+export interface OntologyLink {
+  name: string
+  target: string
+}
+
+export interface OntologyObjectType {
+  name: string
+  description: string
+  properties: OntologyProperty[]
+  links: OntologyLink[]
+}
+
+export interface OntologyDetail {
+  object_types: OntologyObjectType[]
+  actions: { name: string; params: string[]; description: string }[]
+  functions: { name: string; params: string[]; description: string }[]
+  tools: string[]
+}

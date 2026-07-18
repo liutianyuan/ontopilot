@@ -141,3 +141,33 @@ def test_simulate_records_involved_types_in_trace(tmp_path):
     involved = sim_events[0].output_summary["involved_types"]
     assert involved["mutated"] == ["Shipment"]
     assert involved["referenced"] == ["Carrier", "Customer", "Order", "Warehouse"]
+
+
+def test_call_function_compare_decisions_tags_simulation_layer(tmp_path):
+    runtime = make_logistics_runtime(tmp_path)
+    runtime.call_function(
+        user_id="admin_001", role="admin", function_name="compareDecisions",
+        params={
+            "shipmentId": "SH-0001",
+            "options": [{"name": "换CARRIER-B", "action": "assignCarrier", "params": {"newCarrierId": "CARRIER-B"}}],
+        },
+        turn_id="test-turn-3",
+    )
+    trace = runtime.get_trace_events("test-turn-3")
+    sim_events = [e for e in trace if e.layer == "simulation"]
+    assert len(sim_events) == 1
+    involved = sim_events[0].output_summary["involved_types"]
+    assert involved["mutated"] == ["Shipment"]
+    assert involved["referenced"] == ["Carrier", "Customer", "Order", "Warehouse"]
+
+
+def test_call_function_other_functions_stay_logic_layer(tmp_path):
+    runtime = make_logistics_runtime(tmp_path)
+    runtime.call_function(
+        user_id="admin_001", role="admin", function_name="calculateDelayRisk",
+        params={"shipmentIds": ["SH-0001"]}, turn_id="test-turn-4",
+    )
+    trace = runtime.get_trace_events("test-turn-4")
+    assert len(trace) == 1
+    assert trace[0].layer == "logic"
+    assert "involved_types" not in trace[0].output_summary

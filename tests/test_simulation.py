@@ -58,3 +58,44 @@ def test_customer_risk_vip_sla_miss(tmp_path):
     outcome = results[0]["simulated_outcome"]
     if not outcome["sla_met"]:
         assert outcome["customer_risk"] == "high"
+
+
+LOGISTICS_SCHEMA_PATH = "config/logistics_ontology.yaml"
+LOGISTICS_SEED_PATH = "config/logistics_seed.yaml"
+
+
+def make_logistics_simulator(tmp_path):
+    schema = SchemaRegistry(LOGISTICS_SCHEMA_PATH)
+    store = ObjectStore(str(tmp_path / "logistics_test.db"), schema)
+    store.load_seed_data(LOGISTICS_SEED_PATH)
+    functions = FunctionRegistry(schema, store)
+    return SingleStepSimulator(schema, store, functions), store
+
+
+def test_involved_types_on_assign_carrier(tmp_path):
+    sim, _ = make_logistics_simulator(tmp_path)
+    results = sim.compare("SH-0001", [
+        {"name": "换CARRIER-B", "action": "assignCarrier", "params": {"newCarrierId": "CARRIER-B"}},
+    ])
+    involved = results[0]["involved_types"]
+    assert involved["mutated"] == ["Shipment"]
+    assert involved["referenced"] == ["Carrier", "Customer", "Order", "Warehouse"]
+
+
+def test_involved_types_on_update_eta(tmp_path):
+    sim, _ = make_logistics_simulator(tmp_path)
+    results = sim.compare("SH-0001", [
+        {"name": "调整ETA", "action": "updateETA", "params": {"newETA": "2026-07-02T12:00:00+00:00"}},
+    ])
+    involved = results[0]["involved_types"]
+    assert involved["mutated"] == ["Shipment"]
+    assert involved["referenced"] == ["Carrier", "Customer", "Order", "Warehouse"]
+
+
+def test_involved_types_consistent_across_multiple_options(tmp_path):
+    sim, _ = make_logistics_simulator(tmp_path)
+    results = sim.compare("SH-0001", [
+        {"name": "方案A", "action": "assignCarrier", "params": {"newCarrierId": "CARRIER-B"}},
+        {"name": "方案B", "action": "assignCarrier", "params": {"newCarrierId": "CARRIER-C"}},
+    ])
+    assert results[0]["involved_types"] == results[1]["involved_types"]

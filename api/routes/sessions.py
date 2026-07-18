@@ -1,5 +1,7 @@
 from __future__ import annotations
 import asyncio
+import json
+import sqlite3
 import uuid
 from datetime import datetime, timezone
 from fastapi import APIRouter
@@ -7,9 +9,64 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 
 
 class SessionStore:
-    def __init__(self):
-        self._sessions: dict[str, dict] = {}
+    def __init__(self, db_path: str = ".ontopilot.db"):
+        self._db_path = db_path
         self._queues: dict[str, asyncio.Queue] = {}
+        self._init_db()
+        self._sessions: dict[str, dict] = self._load_all()
+
+    def _init_db(self) -> None:
+        with sqlite3.connect(self._db_path) as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS sessions (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    role TEXT,
+                    warehouse_id TEXT,
+                    title TEXT,
+                    pending_action TEXT,
+                    messages TEXT,
+                    created_at TEXT,
+                    updated_at TEXT
+                )
+            """)
+
+    def _load_all(self) -> dict[str, dict]:
+        with sqlite3.connect(self._db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute("SELECT * FROM sessions").fetchall()
+        sessions = {}
+        for r in rows:
+            sessions[r["id"]] = {
+                "user_id": r["user_id"],
+                "role": r["role"],
+                "warehouse_id": r["warehouse_id"],
+                "title": r["title"],
+                "pending_action": json.loads(r["pending_action"]) if r["pending_action"] else None,
+                "messages": json.loads(r["messages"]) if r["messages"] else [],
+                "created_at": r["created_at"],
+                "updated_at": r["updated_at"],
+            }
+        return sessions
+
+    def _persist(self, session_id: str) -> None:
+        s = self._sessions[session_id]
+        with sqlite3.connect(self._db_path) as conn:
+            conn.execute(
+                """INSERT INTO sessions
+                    (id, user_id, role, warehouse_id, title, pending_action, messages, created_at, updated_at)
+                   VALUES (?,?,?,?,?,?,?,?,?)
+                   ON CONFLICT(id) DO UPDATE SET
+                    user_id=excluded.user_id, role=excluded.role, warehouse_id=excluded.warehouse_id,
+                    title=excluded.title, pending_action=excluded.pending_action,
+                    messages=excluded.messages, updated_at=excluded.updated_at""",
+                (
+                    session_id, s["user_id"], s["role"], s["warehouse_id"], s.get("title"),
+                    json.dumps(s["pending_action"]) if s.get("pending_action") is not None else None,
+                    json.dumps(s.get("messages", [])),
+                    s["created_at"], s["updated_at"],
+                ),
+            )
 
     def create_session(self, user_id: str, role: str, warehouse_id: str) -> str:
         session_id = str(uuid.uuid4())
@@ -25,6 +82,7 @@ class SessionStore:
             "updated_at": now,
         }
         self._queues[session_id] = asyncio.Queue()
+        self._persist(session_id)
         return session_id
 
     def get(self, session_id: str) -> dict | None:
@@ -34,6 +92,7 @@ class SessionStore:
         if session_id in self._sessions:
             self._sessions[session_id].update(kwargs)
             self._sessions[session_id]["updated_at"] = datetime.now(timezone.utc).isoformat()
+            self._persist(session_id)
 
     def add_message(self, session_id: str, role: str, content: str) -> None:
         session = self._sessions.get(session_id)
@@ -48,6 +107,13 @@ class SessionStore:
         # Set title from first user message
         if role == "human" and not session.get("title"):
             session["title"] = content[:80] + ("…" if len(content) > 80 else "")
+        self._persist(session_id)
+
+    def delete(self, session_id: str) -> None:
+        self._sessions.pop(session_id, None)
+        self._queues.pop(session_id, None)
+        with sqlite3.connect(self._db_path) as conn:
+            conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
 
     def get_history(self, session_id: str) -> list[BaseMessage]:
         """Reconstruct BaseMessage list from stored message dicts."""
@@ -88,6 +154,8 @@ class SessionStore:
         return session.get("messages", [])
 
     def get_queue(self, session_id: str) -> asyncio.Queue | None:
+        if session_id not in self._queues and session_id in self._sessions:
+            self._queues[session_id] = asyncio.Queue()
         return self._queues.get(session_id)
 
     def push_event(self, session_id: str, event: dict) -> None:
@@ -113,8 +181,7 @@ async def delete_session(session_id: str) -> dict:
     session = session_store.get(session_id)
     if not session:
         return {"status": "error", "message": "Session not found"}
-    del session_store._sessions[session_id]
-    session_store._queues.pop(session_id, None)
+    session_store.delete(session_id)
     return {"status": "ok", "message": "会话已删除"}
 
 

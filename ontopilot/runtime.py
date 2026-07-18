@@ -279,7 +279,9 @@ class OntologyRuntime:
         ms = int((time.monotonic() - t0) * 1000)
         audit_id = self._audit.log(user_id, "simulation", "Shipment", shipment_id,
                                    {"options": options}, {"result_count": len(result)}, "pass")
+        involved_types = result[0]["involved_types"] if result else {"mutated": [], "referenced": []}
         self._record(turn_id, "simulation", "simulate_decisions", "success",
                      {"shipment_id": shipment_id, "options": [o["name"] for o in options]},
-                     {"result_count": len(result)}, "pass", ms, audit_id=audit_id)
+                     {"result_count": len(result), "involved_types": involved_types},
+                     "pass", ms, audit_id=audit_id)
         return result

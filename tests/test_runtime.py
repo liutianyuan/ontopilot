@@ -116,3 +116,28 @@ def test_query_nonexistent_object(runtime):
         properties=None, aggregation=None, turn_id=turn_id,
     )
     assert results == []
+
+
+def make_logistics_runtime(tmp_path):
+    return OntologyRuntime.from_config(
+        "config",
+        str(tmp_path / "logistics_runtime_test.db"),
+        schema_path="config/logistics_ontology.yaml",
+        seed_path="config/logistics_seed.yaml",
+        permissions_path="config/logistics_permissions.yaml",
+    )
+
+
+def test_simulate_records_involved_types_in_trace(tmp_path):
+    runtime = make_logistics_runtime(tmp_path)
+    runtime.simulate(
+        user_id="admin_001", role="admin", shipment_id="SH-0001",
+        options=[{"name": "换CARRIER-B", "action": "assignCarrier", "params": {"newCarrierId": "CARRIER-B"}}],
+        turn_id="test-turn-1",
+    )
+    trace = runtime.get_trace_events("test-turn-1")
+    sim_events = [e for e in trace if e.layer == "simulation"]
+    assert len(sim_events) == 1
+    involved = sim_events[0].output_summary["involved_types"]
+    assert involved["mutated"] == ["Shipment"]
+    assert involved["referenced"] == ["Carrier", "Customer", "Order", "Warehouse"]

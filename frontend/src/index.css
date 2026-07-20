@@ -1,3 +1,32 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes ontology-ping {
+  from {
+    r: 28;
+    opacity: 0.7;
+  }
+  to {
+    r: 40;
+    opacity: 0;
+  }
+}
+
+.ontology-ping {
+  animation: ontology-ping 0.8s ease-out;
+}
+
+@keyframes ontology-edge-flow {
+  from {
+    stroke-dashoffset: 10;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.ontology-edge-flow {
+  stroke-dasharray: 5 4;
+  animation: ontology-edge-flow 0.6s linear infinite;
+}

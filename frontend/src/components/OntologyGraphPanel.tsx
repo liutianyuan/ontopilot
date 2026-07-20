@@ -1,9 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, Simulation, SimulationNodeDatum } from 'd3-force'
+import { select } from 'd3-selection'
+import { zoom as d3zoom, zoomIdentity, D3ZoomEvent, ZoomBehavior, ZoomTransform } from 'd3-zoom'
 import { TraceEvent, OntologyDetail } from '../types'
 
 const WIDTH = 800
 const HEIGHT = 560
+const MIN_SCALE = 0.4
+const MAX_SCALE = 3
 
 interface GraphNode extends SimulationNodeDatum {
   id: string
@@ -35,7 +39,9 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
   const [nodes, setNodes] = useState<GraphNode[]>([])
   const [renderLinks, setRenderLinks] = useState<GraphLink[]>([])
   const [hover, setHover] = useState<HoverInfo | null>(null)
+  const [transform, setTransform] = useState<ZoomTransform>(zoomIdentity)
   const svgRef = useRef<SVGSVGElement | null>(null)
+  const zoomBehaviorRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null)
   const simulationRef = useRef<Simulation<GraphNode, GraphLink> | null>(null)
   const draggingRef = useRef<GraphNode | null>(null)
 
@@ -65,6 +71,10 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
 
   useEffect(() => {
     setHover(null)
+    setTransform(zoomIdentity)
+    if (svgRef.current && zoomBehaviorRef.current) {
+      select(svgRef.current).call(zoomBehaviorRef.current.transform, zoomIdentity)
+    }
     if (objectTypes.length === 0) {
       setNodes([])
       setRenderLinks([])
@@ -102,13 +112,47 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
     }
   }, [objectTypes])
 
+  useEffect(() => {
+    const svg = svgRef.current
+    if (!svg) return
+    const zoomBehavior = d3zoom<SVGSVGElement, unknown>()
+      .scaleExtent([MIN_SCALE, MAX_SCALE])
+      .filter((event: any) => {
+        if (event.type === 'wheel') return true
+        if (event.target?.closest?.('[data-graph-node]')) return false
+        return !event.ctrlKey && !event.button
+      })
+      .on('zoom', (event: D3ZoomEvent<SVGSVGElement, unknown>) => setTransform(event.transform))
+    zoomBehaviorRef.current = zoomBehavior
+    select(svg).call(zoomBehavior)
+    return () => {
+      select(svg).on('.zoom', null)
+    }
+  }, [])
+
+  const zoomBy = (factor: number) => {
+    const svg = svgRef.current
+    const zoomBehavior = zoomBehaviorRef.current
+    if (!svg || !zoomBehavior) return
+    select(svg).call(zoomBehavior.scaleBy, factor)
+  }
+
+  const resetZoom = () => {
+    const svg = svgRef.current
+    const zoomBehavior = zoomBehaviorRef.current
+    if (!svg || !zoomBehavior) return
+    select(svg).call(zoomBehavior.transform, zoomIdentity)
+  }
+
   const toSvgPoint = (clientX: number, clientY: number) => {
     const svg = svgRef.current
     if (!svg) return { x: 0, y: 0 }
     const rect = svg.getBoundingClientRect()
+    const viewBoxX = ((clientX - rect.left) / rect.width) * WIDTH
+    const viewBoxY = ((clientY - rect.top) / rect.height) * HEIGHT
     return {
-      x: ((clientX - rect.left) / rect.width) * WIDTH,
-      y: ((clientY - rect.top) / rect.height) * HEIGHT,
+      x: (viewBoxX - transform.x) / transform.k,
+      y: (viewBoxY - transform.y) / transform.k,
     }
   }
 
@@ -179,51 +223,57 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#a5b4fc" />
             </marker>
           </defs>
-          {renderLinks.map((link, i) => {
-            const source = link.source as GraphNode
-            const target = link.target as GraphNode
-            if (typeof source === 'string' || typeof target === 'string') return null
-            if (source.x == null || source.y == null || target.x == null || target.y == null) return null
-            return (
-              <g key={i}>
-                <line
-                  x1={source.x} y1={source.y} x2={target.x} y2={target.y}
-                  stroke="#a5b4fc" strokeWidth={1.5} markerEnd="url(#ontology-graph-arrow)"
-                />
-                <text
-                  x={(source.x + target.x) / 2}
-                  y={(source.y + target.y) / 2}
-                  className="fill-gray-400 text-[9px]"
-                  textAnchor="middle"
+          <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}>
+            {renderLinks.map((link, i) => {
+              const source = link.source as GraphNode
+              const target = link.target as GraphNode
+              if (typeof source === 'string' || typeof target === 'string') return null
+              if (source.x == null || source.y == null || target.x == null || target.y == null) return null
+              return (
+                <g key={i}>
+                  <line
+                    x1={source.x} y1={source.y} x2={target.x} y2={target.y}
+                    stroke="#a5b4fc" strokeWidth={1.5} markerEnd="url(#ontology-graph-arrow)"
+                  />
+                  <text
+                    x={(source.x + target.x) / 2}
+                    y={(source.y + target.y) / 2}
+                    className="fill-gray-400 text-[9px]"
+                    textAnchor="middle"
+                  >
+                    {link.label}
+                  </text>
+                </g>
+              )
+            })}
+            {nodes.map(node => {
+              const color = nodeColor(node.id)
+              return (
+                <g
+                  key={node.id}
+                  data-graph-node="true"
+                  transform={`translate(${node.x || 0}, ${node.y || 0})`}
+                  onPointerDown={e => handlePointerDown(node, e)}
+                  onMouseEnter={() => setHover({ node, x: node.x || 0, y: node.y || 0 })}
+                  onMouseLeave={() => setHover(null)}
+                  className="cursor-move"
                 >
-                  {link.label}
-                </text>
-              </g>
-            )
-          })}
-          {nodes.map(node => {
-            const color = nodeColor(node.id)
-            return (
-              <g
-                key={node.id}
-                transform={`translate(${node.x || 0}, ${node.y || 0})`}
-                onPointerDown={e => handlePointerDown(node, e)}
-                onMouseEnter={() => setHover({ node, x: node.x || 0, y: node.y || 0 })}
-                onMouseLeave={() => setHover(null)}
-                className="cursor-move"
-              >
-                <circle r={28} fill={color.fill} stroke={color.stroke} strokeWidth={2} />
-                <text textAnchor="middle" dy="0.35em" className="fill-gray-700 text-[11px] font-medium select-none">
-                  {node.id}
-                </text>
-              </g>
-            )
-          })}
+                  <circle r={28} fill={color.fill} stroke={color.stroke} strokeWidth={2} />
+                  <text textAnchor="middle" dy="0.35em" className="fill-gray-700 text-[11px] font-medium select-none">
+                    {node.id}
+                  </text>
+                </g>
+              )
+            })}
+          </g>
         </svg>
         {hover && (
           <div
             className="absolute z-10 bg-white border rounded-lg shadow-lg p-3 text-xs max-w-xs pointer-events-none"
-            style={{ left: `${(hover.x / WIDTH) * 100}%`, top: `${(hover.y / HEIGHT) * 100}%` }}
+            style={{
+              left: `${((hover.x * transform.k + transform.x) / WIDTH) * 100}%`,
+              top: `${((hover.y * transform.k + transform.y) / HEIGHT) * 100}%`,
+            }}
           >
             <div className="font-semibold text-gray-700 mb-1">{hover.node.id}</div>
             {hover.node.description && (
@@ -240,6 +290,29 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
             </div>
           </div>
         )}
+        <div className="absolute bottom-3 right-3 flex flex-col gap-1 z-10">
+          <button
+            onClick={() => zoomBy(1.2)}
+            className="w-7 h-7 flex items-center justify-center rounded-md border bg-white shadow text-gray-600 hover:bg-gray-50"
+            title="放大"
+          >
+            +
+          </button>
+          <button
+            onClick={() => zoomBy(1 / 1.2)}
+            className="w-7 h-7 flex items-center justify-center rounded-md border bg-white shadow text-gray-600 hover:bg-gray-50"
+            title="缩小"
+          >
+            −
+          </button>
+          <button
+            onClick={resetZoom}
+            className="w-7 h-7 flex items-center justify-center rounded-md border bg-white shadow text-gray-600 hover:bg-gray-50 text-[11px]"
+            title="重置视图"
+          >
+            ⟲
+          </button>
+        </div>
       </div>
     </div>
   )

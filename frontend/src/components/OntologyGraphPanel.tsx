@@ -144,7 +144,7 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
     return () => {
       select(svg).on('.zoom', null)
     }
-  }, [])
+  }, [objectTypes])
 
   const zoomBy = (factor: number) => {
     const svg = svgRef.current

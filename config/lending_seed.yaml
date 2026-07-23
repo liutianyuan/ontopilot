@@ -266,7 +266,7 @@ LoanContract:
     borrowerId: BOR-002
     principal: 60000.0
     termMonths: 18
-    annualRate: 0.072
+    annualRate: 0.097
     monthlyPayment: 3595.32
     totalInterest: 4715.69
     status: active
@@ -286,7 +286,7 @@ LoanContract:
 
   # ── 已结清 ──
   - contractId: CT-007
-    applicationId: APP-008
+    applicationId: APP-007
     borrowerId: BOR-001
     principal: 50000.0
     termMonths: 12
@@ -294,7 +294,7 @@ LoanContract:
     monthlyPayment: 4277.85
     totalInterest: 1334.17
     status: paid_off
-    originatedAt: "2025-06-01T09:00:00+00:00"
+    originatedAt: "2026-06-01T09:00:00+00:00"
 
   # ── 重组合同 ──
   - contractId: CT-008

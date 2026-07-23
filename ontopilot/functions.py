@@ -726,13 +726,23 @@ class FunctionRegistry:
                 risk_flags.append(f"连续{consecutive_missed}期未还")
             if consecutive_late >= 2:
                 risk_flags.append(f"连续{consecutive_late}期迟还")
+            if any(r.get("status") == "missed" for r in records):
+                risk_flags.append("有未还记录")
             if contract.get("status") == "defaulted":
                 risk_flags.append("合同已违约")
             if contract.get("status") == "restructured":
                 risk_flags.append("合同已重组")
 
+            # Calculate remaining principal using linear amortization
+            paid_count = sum(1 for r in records if r.get("status") in ("on_time", "late"))
+            monthly_principal = contract.get("principal", 0) / max(contract.get("termMonths", 1), 1)
+            remaining_principal = max(0, round(contract.get("principal", 0) - paid_count * monthly_principal, 2))
+
             # Borrower info
             borrower = self._store.get("Borrower", contract.get("borrowerId", "")) or {}
+            monthly_income = borrower.get("monthlyIncome", 0)
+            if remaining_principal > monthly_income * 36:
+                risk_flags.append("剩余本金过高(>月收入36倍)")
 
             last_status = last_3[-1].get("status") if last_3 else "unknown"
             results.append({
@@ -740,9 +750,7 @@ class FunctionRegistry:
                 "borrowerName": borrower.get("name", ""),
                 "status": contract.get("status"),
                 "overdueDays": overdue_days,
-                "remainingPrincipal": round(contract.get("principal", 0) - sum(
-                    r.get("paidAmount", 0) for r in records if r.get("status") in ("on_time", "late")
-                ), 2),
+                "remainingPrincipal": remaining_principal,
                 "monthlyPayment": contract.get("monthlyPayment"),
                 "lastPaymentStatus": last_status,
                 "riskFlags": risk_flags,

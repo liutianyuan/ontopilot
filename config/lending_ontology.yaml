@@ -1,0 +1,216 @@
+# 信贷金融 Ontology — 个人贷款全流程
+object_types:
+
+  Borrower:
+    description: 借款人
+    properties:
+      borrowerId:         { type: string, primary_key: true }
+      name:               { type: string }
+      age:                { type: int }
+      monthlyIncome:      { type: float }
+      occupation:         { type: string }
+      dti:                { type: float }
+      creditScore:        { type: int }
+      historicalDefaults: { type: int }
+      region:             { type: string }
+
+  LoanApplication:
+    description: 贷款申请
+    properties:
+      applicationId: { type: string, primary_key: true }
+      borrowerId:   { type: string }
+      amount:       { type: float }
+      termMonths:   { type: int }
+      purpose:      { type: enum, values: [consumption, business, education, medical, debt_consolidation] }
+      status:       { type: enum, values: [pending, under_review, approved, rejected] }
+      appliedAt:    { type: datetime }
+    links:
+      submittedBy: { target: Borrower, foreign_key: borrowerId }
+
+  CreditReport:
+    description: 征信报告
+    properties:
+      reportId:        { type: string, primary_key: true }
+      applicationId:   { type: string }
+      creditScore:     { type: int }
+      inquiryCount6m:  { type: int }
+      existingDebt:    { type: float }
+      overdueHistory:  { type: int }
+      fraudFlag:       { type: bool }
+    links:
+      assessedFor: { target: LoanApplication, foreign_key: applicationId }
+
+  LoanContract:
+    description: 贷款合同
+    properties:
+      contractId:     { type: string, primary_key: true }
+      applicationId:  { type: string }
+      borrowerId:     { type: string }
+      principal:      { type: float }
+      annualRate:     { type: float }
+      termMonths:     { type: int }
+      monthlyPayment: { type: float }
+      totalInterest:  { type: float }
+      status:         { type: enum, values: [active, paid_off, defaulted, restructured] }
+      originatedAt:   { type: datetime }
+    links:
+      approvedFrom: { target: LoanApplication, foreign_key: applicationId }
+      belongsTo:    { target: Borrower, foreign_key: borrowerId }
+
+  RepaymentPlan:
+    description: 还款计划
+    properties:
+      planId:             { type: string, primary_key: true }
+      contractId:         { type: string }
+      totalPeriods:       { type: int }
+      monthlyPayment:     { type: float }
+      remainingPrincipal: { type: float }
+    links:
+      hasPlan: { target: LoanContract, foreign_key: contractId }
+
+  RepaymentRecord:
+    description: 还款记录
+    properties:
+      recordId:   { type: string, primary_key: true }
+      contractId: { type: string }
+      period:     { type: int }
+      dueDate:    { type: datetime }
+      paidDate:   { type: datetime, nullable: true }
+      paidAmount: { type: float }
+      status:     { type: enum, values: [on_time, late, missed, upcoming] }
+    links:
+      belongsTo: { target: LoanContract, foreign_key: contractId }
+
+  CollectionCase:
+    description: 催收案件
+    properties:
+      caseId:            { type: string, primary_key: true }
+      contractId:        { type: string }
+      borrowerId:        { type: string }
+      overdueDays:       { type: int }
+      outstandingAmount: { type: float }
+      strategy:          { type: enum, values: [sms, phone_call, legal_notice, door_visit, external_agency] }
+      status:            { type: enum, values: [open, in_progress, resolved, written_off] }
+      assignedTo:        { type: string }
+      openedAt:          { type: datetime }
+    links:
+      triggeredBy: { target: LoanContract, foreign_key: contractId }
+      subjectOf:   { target: Borrower, foreign_key: borrowerId }
+
+actions:
+
+  submitApplication:
+    description: "提交贷款申请"
+    params:
+      borrowerId: { type: string, required: true }
+      amount:     { type: float, required: true }
+      termMonths: { type: int, required: true }
+      purpose:    { type: enum, values: [consumption, business, education, medical, debt_consolidation], required: true }
+    target_type: LoanApplication
+    creates: true
+    requires_confirmation: true
+
+  runCreditCheck:
+    description: "对贷款申请执行征信查询，生成征信报告"
+    params:
+      applicationId: { type: string, required: true }
+    target_type: CreditReport
+    creates: true
+    requires_confirmation: false
+
+  approveLoan:
+    description: "审批通过贷款申请，生成合同与还款计划"
+    params:
+      applicationId: { type: string, required: true }
+      annualRate:    { type: float, required: true }
+      termMonths:    { type: int, required: true }
+      principal:     { type: float, required: true }
+    target_type: LoanContract
+    creates: true
+    requires_confirmation: true
+
+  rejectLoan:
+    description: "拒绝贷款申请"
+    params:
+      applicationId: { type: string, required: true }
+      reason:        { type: string, required: true }
+    target_type: LoanApplication
+    edits: { status: rejected }
+    requires_confirmation: true
+
+  adjustLoanTerms:
+    description: "调整贷款合同条款（用于利率调整或重组场景）"
+    params:
+      contractId: { type: string, required: true }
+      annualRate: { type: float, required: false }
+      termMonths: { type: int, required: false }
+      principal:  { type: float, required: false }
+      reason:     { type: string, required: true }
+    target_type: LoanContract
+    edits: { annualRate: annualRate, termMonths: termMonths, principal: principal }
+    requires_confirmation: true
+
+  recordRepayment:
+    description: "记录一笔还款"
+    params:
+      contractId: { type: string, required: true }
+      period:     { type: int, required: true }
+      dueDate:    { type: datetime, required: true }
+      paidDate:   { type: datetime, required: true }
+      paidAmount: { type: float, required: true }
+      status:     { type: enum, values: [on_time, late, missed], required: true }
+    target_type: RepaymentRecord
+    creates: true
+    requires_confirmation: false
+
+  openCollectionCase:
+    description: "对逾期合同开启催收案件"
+    params:
+      contractId: { type: string, required: true }
+      reason:     { type: string, required: true }
+      strategy:   { type: enum, values: [sms, phone_call, legal_notice, door_visit, external_agency], required: true }
+    target_type: CollectionCase
+    creates: true
+    requires_confirmation: true
+
+  applyCollectionStrategy:
+    description: "对催收案件更换催收策略"
+    params:
+      caseId:   { type: string, required: true }
+      strategy: { type: enum, values: [sms, phone_call, legal_notice, door_visit, external_agency], required: true }
+      reason:   { type: string, required: true }
+    target_type: CollectionCase
+    edits: { strategy: strategy }
+    requires_confirmation: true
+
+functions:
+
+  assessApplicationRisk:
+    description: "对贷款申请进行综合风控评估（征信分+DTI+历史逾期+查询次数）"
+    params:
+      applicationId: { type: string, required: true }
+    returns: "{riskLevel, riskScore, recommendedMaxAmount, reasons, creditScore, dti}"
+    permission: assessApplicationRisk
+
+  evaluateLoanPortfolio:
+    description: "扫描全部贷款合同的还款状态，识别高风险合同"
+    params:
+      filters: { type: object, required: false }
+    returns: "list[{contractId, borrowerName, status, overdueDays, remainingPrincipal, lastPaymentStatus, riskFlags}]"
+    permission: evaluateLoanPortfolio
+
+  compareLoanOptions:
+    description: "对比不同贷款方案的月供、总利息、DTI变化与风险评级"
+    params:
+      applicationId: { type: string, required: true }
+      options:       { type: list, required: true }
+    returns: "list[{optionName, monthlyPayment, totalInterest, newDti, affordabilityScore, riskLevel}]"
+    permission: compareLoanOptions
+
+  compareCollectionOptions:
+    description: "对比不同催收策略的预估回款率、回款金额与成本"
+    params:
+      caseId:  { type: string, required: true }
+      options: { type: list, required: true }
+    returns: "list[{strategy, estimatedRecoveryRate, estimatedRecoveryAmount, estimatedCost, recommendation}]"
+    permission: compareCollectionOptions

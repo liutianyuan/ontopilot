@@ -1,0 +1,620 @@
+# Lending seed data — 信贷金融场景测试数据
+
+Borrower:
+  - borrowerId: BOR-001
+    name: 张伟
+    age: 32
+    monthlyIncome: 18000.0
+    occupation: 软件工程师
+    dti: 0.25
+    creditScore: 720
+    historicalDefaults: 0
+    region: 北京
+
+  - borrowerId: BOR-002
+    name: 李婷
+    age: 28
+    monthlyIncome: 12000.0
+    occupation: 市场专员
+    dti: 0.40
+    creditScore: 650
+    historicalDefaults: 1
+    region: 上海
+
+  - borrowerId: BOR-003
+    name: 王强
+    age: 45
+    monthlyIncome: 25000.0
+    occupation: 企业主
+    dti: 0.55
+    creditScore: 580
+    historicalDefaults: 3
+    region: 广州
+
+  - borrowerId: BOR-004
+    name: 赵芳
+    age: 35
+    monthlyIncome: 15000.0
+    occupation: 教师
+    dti: 0.20
+    creditScore: 780
+    historicalDefaults: 0
+    region: 深圳
+
+  - borrowerId: BOR-005
+    name: 陈明
+    age: 24
+    monthlyIncome: 8000.0
+    occupation: 应届生
+    dti: 0.15
+    creditScore: 620
+    historicalDefaults: 0
+    region: 杭州
+
+  - borrowerId: BOR-006
+    name: 刘洋
+    age: 38
+    monthlyIncome: 20000.0
+    occupation: 销售经理
+    dti: 0.48
+    creditScore: 610
+    historicalDefaults: 2
+    region: 成都
+
+  - borrowerId: BOR-007
+    name: 孙丽
+    age: 30
+    monthlyIncome: 16000.0
+    occupation: 医生
+    dti: 0.30
+    creditScore: 750
+    historicalDefaults: 0
+    region: 南京
+
+  - borrowerId: BOR-008
+    name: 周杰
+    age: 52
+    monthlyIncome: 10000.0
+    occupation: 出租车司机
+    dti: 0.60
+    creditScore: 520
+    historicalDefaults: 5
+    region: 武汉
+
+LoanApplication:
+  # ── 待审申请 ──
+  - applicationId: APP-001
+    borrowerId: BOR-001
+    amount: 150000.0
+    termMonths: 36
+    purpose: consumption
+    status: under_review
+    appliedAt: "2026-07-15T10:00:00+00:00"
+
+  - applicationId: APP-002
+    borrowerId: BOR-002
+    amount: 80000.0
+    termMonths: 24
+    purpose: education
+    status: under_review
+    appliedAt: "2026-07-16T14:00:00+00:00"
+
+  - applicationId: APP-003
+    borrowerId: BOR-003
+    amount: 200000.0
+    termMonths: 48
+    purpose: business
+    status: under_review
+    appliedAt: "2026-07-14T09:00:00+00:00"
+
+  - applicationId: APP-004
+    borrowerId: BOR-005
+    amount: 50000.0
+    termMonths: 12
+    purpose: consumption
+    status: under_review
+    appliedAt: "2026-07-18T11:00:00+00:00"
+
+  # ── 已批准（转合同） ──
+  - applicationId: APP-005
+    borrowerId: BOR-004
+    amount: 120000.0
+    termMonths: 36
+    purpose: medical
+    status: approved
+    appliedAt: "2026-04-01T08:00:00+00:00"
+
+  - applicationId: APP-006
+    borrowerId: BOR-006
+    amount: 180000.0
+    termMonths: 60
+    purpose: debt_consolidation
+    status: approved
+    appliedAt: "2026-03-15T10:00:00+00:00"
+
+  - applicationId: APP-007
+    borrowerId: BOR-007
+    amount: 100000.0
+    termMonths: 24
+    purpose: consumption
+    status: approved
+    appliedAt: "2026-05-20T13:00:00+00:00"
+
+  - applicationId: APP-008
+    borrowerId: BOR-001
+    amount: 80000.0
+    termMonths: 12
+    purpose: consumption
+    status: approved
+    appliedAt: "2026-06-01T09:00:00+00:00"
+
+  - applicationId: APP-009
+    borrowerId: BOR-002
+    amount: 60000.0
+    termMonths: 18
+    purpose: education
+    status: approved
+    appliedAt: "2026-05-10T15:00:00+00:00"
+
+  - applicationId: APP-010
+    borrowerId: BOR-008
+    amount: 200000.0
+    termMonths: 60
+    purpose: business
+    status: approved
+    appliedAt: "2026-02-01T10:00:00+00:00"
+
+  # ── 已拒绝 ──
+  - applicationId: APP-011
+    borrowerId: BOR-008
+    amount: 300000.0
+    termMonths: 60
+    purpose: business
+    status: rejected
+    appliedAt: "2026-01-10T09:00:00+00:00"
+
+  - applicationId: APP-012
+    borrowerId: BOR-003
+    amount: 500000.0
+    termMonths: 120
+    purpose: business
+    status: rejected
+    appliedAt: "2026-02-20T11:00:00+00:00"
+
+CreditReport:
+  - reportId: CR-001
+    applicationId: APP-001
+    creditScore: 735
+    inquiryCount6m: 2
+    existingDebt: 50000.0
+    overdueHistory: 0
+    fraudFlag: false
+
+  - reportId: CR-002
+    applicationId: APP-002
+    creditScore: 660
+    inquiryCount6m: 4
+    existingDebt: 80000.0
+    overdueHistory: 1
+    fraudFlag: false
+
+  - reportId: CR-003
+    applicationId: APP-003
+    creditScore: 545
+    inquiryCount6m: 8
+    existingDebt: 300000.0
+    overdueHistory: 5
+    fraudFlag: false
+
+  - reportId: CR-004
+    applicationId: APP-004
+    creditScore: 625
+    inquiryCount6m: 1
+    existingDebt: 10000.0
+    overdueHistory: 0
+    fraudFlag: false
+
+LoanContract:
+  # ── 正常还款 ──
+  - contractId: CT-001
+    applicationId: APP-005
+    borrowerId: BOR-004
+    principal: 120000.0
+    annualRate: 0.065
+    termMonths: 36
+    monthlyPayment: 3677.39
+    totalInterest: 12386.09
+    status: active
+    originatedAt: "2026-04-15T10:00:00+00:00"
+
+  - contractId: CT-002
+    applicationId: APP-007
+    borrowerId: BOR-007
+    principal: 100000.0
+    termMonths: 24
+    annualRate: 0.058
+    monthlyPayment: 4425.58
+    totalInterest: 6213.92
+    status: active
+    originatedAt: "2026-06-01T09:00:00+00:00"
+
+  - contractId: CT-003
+    applicationId: APP-008
+    borrowerId: BOR-001
+    principal: 80000.0
+    termMonths: 12
+    annualRate: 0.052
+    monthlyPayment: 6858.51
+    totalInterest: 2302.14
+    status: active
+    originatedAt: "2026-06-15T10:00:00+00:00"
+
+  # ── 开始逾期 ──
+  - contractId: CT-004
+    applicationId: APP-006
+    borrowerId: BOR-006
+    principal: 180000.0
+    termMonths: 60
+    annualRate: 0.088
+    monthlyPayment: 3725.61
+    totalInterest: 43536.53
+    status: active
+    originatedAt: "2026-04-01T10:00:00+00:00"
+
+  - contractId: CT-005
+    applicationId: APP-009
+    borrowerId: BOR-002
+    principal: 60000.0
+    termMonths: 18
+    annualRate: 0.072
+    monthlyPayment: 3595.32
+    totalInterest: 4715.69
+    status: active
+    originatedAt: "2026-05-25T14:00:00+00:00"
+
+  # ── 严重逾期/违约 ──
+  - contractId: CT-006
+    applicationId: APP-010
+    borrowerId: BOR-008
+    principal: 200000.0
+    termMonths: 60
+    annualRate: 0.105
+    monthlyPayment: 4289.37
+    totalInterest: 57362.20
+    status: defaulted
+    originatedAt: "2026-02-15T10:00:00+00:00"
+
+  # ── 已结清 ──
+  - contractId: CT-007
+    applicationId: APP-008
+    borrowerId: BOR-001
+    principal: 50000.0
+    termMonths: 12
+    annualRate: 0.048
+    monthlyPayment: 4277.85
+    totalInterest: 1334.17
+    status: paid_off
+    originatedAt: "2025-06-01T09:00:00+00:00"
+
+  # ── 重组合同 ──
+  - contractId: CT-008
+    applicationId: APP-006
+    borrowerId: BOR-006
+    principal: 150000.0
+    termMonths: 36
+    annualRate: 0.095
+    monthlyPayment: 4804.86
+    totalInterest: 22975.02
+    status: restructured
+    originatedAt: "2026-05-01T10:00:00+00:00"
+
+RepaymentPlan:
+  - planId: PLAN-001
+    contractId: CT-001
+    totalPeriods: 36
+    monthlyPayment: 3677.39
+    remainingPrincipal: 105000.0
+
+  - planId: PLAN-002
+    contractId: CT-002
+    totalPeriods: 24
+    monthlyPayment: 4425.58
+    remainingPrincipal: 80000.0
+
+  - planId: PLAN-003
+    contractId: CT-003
+    totalPeriods: 12
+    monthlyPayment: 6858.51
+    remainingPrincipal: 60000.0
+
+  - planId: PLAN-004
+    contractId: CT-004
+    totalPeriods: 60
+    monthlyPayment: 3725.61
+    remainingPrincipal: 175000.0
+
+  - planId: PLAN-005
+    contractId: CT-005
+    totalPeriods: 18
+    monthlyPayment: 3595.32
+    remainingPrincipal: 50000.0
+
+  - planId: PLAN-006
+    contractId: CT-006
+    totalPeriods: 60
+    monthlyPayment: 4289.37
+    remainingPrincipal: 190000.0
+
+  - planId: PLAN-007
+    contractId: CT-007
+    totalPeriods: 12
+    monthlyPayment: 4277.85
+    remainingPrincipal: 0.0
+
+  - planId: PLAN-008
+    contractId: CT-008
+    totalPeriods: 36
+    monthlyPayment: 4804.86
+    remainingPrincipal: 140000.0
+
+RepaymentRecord:
+  # ── CT-001 正常还款（赵芳，已还3期）──
+  - recordId: REC-00101
+    contractId: CT-001
+    period: 1
+    dueDate: "2026-05-15T10:00:00+00:00"
+    paidDate: "2026-05-14T09:00:00+00:00"
+    paidAmount: 3677.39
+    status: on_time
+
+  - recordId: REC-00102
+    contractId: CT-001
+    period: 2
+    dueDate: "2026-06-15T10:00:00+00:00"
+    paidDate: "2026-06-15T08:00:00+00:00"
+    paidAmount: 3677.39
+    status: on_time
+
+  - recordId: REC-00103
+    contractId: CT-001
+    period: 3
+    dueDate: "2026-07-15T10:00:00+00:00"
+    paidDate: "2026-07-14T10:00:00+00:00"
+    paidAmount: 3677.39
+    status: on_time
+
+  - recordId: REC-00104
+    contractId: CT-001
+    period: 4
+    dueDate: "2026-08-15T10:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: upcoming
+
+  # ── CT-002 正常还款（孙丽，已还2期）──
+  - recordId: REC-00201
+    contractId: CT-002
+    period: 1
+    dueDate: "2026-07-01T09:00:00+00:00"
+    paidDate: "2026-06-30T15:00:00+00:00"
+    paidAmount: 4425.58
+    status: on_time
+
+  - recordId: REC-00202
+    contractId: CT-002
+    period: 2
+    dueDate: "2026-08-01T09:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: upcoming
+
+  # ── CT-003 正常还款（张伟，已还1期）──
+  - recordId: REC-00301
+    contractId: CT-003
+    period: 1
+    dueDate: "2026-07-15T10:00:00+00:00"
+    paidDate: "2026-07-15T10:00:00+00:00"
+    paidAmount: 6858.51
+    status: on_time
+
+  - recordId: REC-00302
+    contractId: CT-003
+    period: 2
+    dueDate: "2026-08-15T10:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: upcoming
+
+  # ── CT-004 开始逾期（刘洋，已还4期，最近2期问题）──
+  - recordId: REC-00401
+    contractId: CT-004
+    period: 1
+    dueDate: "2026-05-01T10:00:00+00:00"
+    paidDate: "2026-05-02T10:00:00+00:00"
+    paidAmount: 3725.61
+    status: late
+
+  - recordId: REC-00402
+    contractId: CT-004
+    period: 2
+    dueDate: "2026-06-01T10:00:00+00:00"
+    paidDate: "2026-06-05T10:00:00+00:00"
+    paidAmount: 3725.61
+    status: late
+
+  - recordId: REC-00403
+    contractId: CT-004
+    period: 3
+    dueDate: "2026-07-01T10:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: missed
+
+  - recordId: REC-00404
+    contractId: CT-004
+    period: 4
+    dueDate: "2026-08-01T10:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: upcoming
+
+  # ── CT-005 开始逾期（李婷，已还2期，最新迟还）──
+  - recordId: REC-00501
+    contractId: CT-005
+    period: 1
+    dueDate: "2026-06-25T14:00:00+00:00"
+    paidDate: "2026-06-26T10:00:00+00:00"
+    paidAmount: 3595.32
+    status: late
+
+  - recordId: REC-00502
+    contractId: CT-005
+    period: 2
+    dueDate: "2026-07-25T14:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: missed
+
+  - recordId: REC-00503
+    contractId: CT-005
+    period: 3
+    dueDate: "2026-08-25T14:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: upcoming
+
+  # ── CT-006 严重违约（周杰，已还3期后全部missed）──
+  - recordId: REC-00601
+    contractId: CT-006
+    period: 1
+    dueDate: "2026-03-15T10:00:00+00:00"
+    paidDate: "2026-03-16T10:00:00+00:00"
+    paidAmount: 4289.37
+    status: late
+
+  - recordId: REC-00602
+    contractId: CT-006
+    period: 2
+    dueDate: "2026-04-15T10:00:00+00:00"
+    paidDate: "2026-04-20T10:00:00+00:00"
+    paidAmount: 4289.37
+    status: late
+
+  - recordId: REC-00603
+    contractId: CT-006
+    period: 3
+    dueDate: "2026-05-15T10:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: missed
+
+  - recordId: REC-00604
+    contractId: CT-006
+    period: 4
+    dueDate: "2026-06-15T10:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: missed
+
+  - recordId: REC-00605
+    contractId: CT-006
+    period: 5
+    dueDate: "2026-07-15T10:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: missed
+
+  # ── CT-007 已结清（张伟，12期全部按时还清）──
+  - recordId: REC-00701
+    contractId: CT-007
+    period: 1
+    dueDate: "2025-07-01T09:00:00+00:00"
+    paidDate: "2025-06-28T10:00:00+00:00"
+    paidAmount: 4277.85
+    status: on_time
+
+  - recordId: REC-00711
+    contractId: CT-007
+    period: 11
+    dueDate: "2026-05-01T09:00:00+00:00"
+    paidDate: "2026-04-30T10:00:00+00:00"
+    paidAmount: 4277.85
+    status: on_time
+
+  - recordId: REC-00712
+    contractId: CT-007
+    period: 12
+    dueDate: "2026-06-01T09:00:00+00:00"
+    paidDate: "2026-05-30T10:00:00+00:00"
+    paidAmount: 4277.85
+    status: on_time
+
+  # ── CT-008 重组合同（刘洋，已还3期，开始有逾期迹象）──
+  - recordId: REC-00801
+    contractId: CT-008
+    period: 1
+    dueDate: "2026-06-01T10:00:00+00:00"
+    paidDate: "2026-06-02T10:00:00+00:00"
+    paidAmount: 4804.86
+    status: late
+
+  - recordId: REC-00802
+    contractId: CT-008
+    period: 2
+    dueDate: "2026-07-01T10:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: missed
+
+  - recordId: REC-00803
+    contractId: CT-008
+    period: 3
+    dueDate: "2026-08-01T10:00:00+00:00"
+    paidDate: null
+    paidAmount: 0.0
+    status: upcoming
+
+CollectionCase:
+  # ── 早期逾期 ──
+  - caseId: CC-001
+    contractId: CT-004
+    borrowerId: BOR-006
+    overdueDays: 21
+    outstandingAmount: 7451.22
+    strategy: sms
+    status: in_progress
+    assignedTo: collector_001
+    openedAt: "2026-07-05T10:00:00+00:00"
+
+  # ── 中期逾期 ──
+  - caseId: CC-002
+    contractId: CT-005
+    borrowerId: BOR-002
+    overdueDays: 28
+    outstandingAmount: 7190.64
+    strategy: phone_call
+    status: open
+    assignedTo: collector_002
+    openedAt: "2026-07-20T10:00:00+00:00"
+
+  # ── 严重逾期 ──
+  - caseId: CC-003
+    contractId: CT-006
+    borrowerId: BOR-008
+    overdueDays: 120
+    outstandingAmount: 34314.96
+    strategy: phone_call
+    status: in_progress
+    assignedTo: collector_001
+    openedAt: "2026-06-15T10:00:00+00:00"
+
+  # ── 重组后仍有问题 ──
+  - caseId: CC-004
+    contractId: CT-008
+    borrowerId: BOR-006
+    overdueDays: 51
+    outstandingAmount: 9609.72
+    strategy: door_visit
+    status: open
+    assignedTo: collector_003
+    openedAt: "2026-07-01T10:00:00+00:00"

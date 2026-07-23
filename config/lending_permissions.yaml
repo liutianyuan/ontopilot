@@ -1,0 +1,43 @@
+# Permissions — 信贷金融场景
+roles:
+  loan_officer:
+    query_types: [Borrower, LoanApplication, CreditReport, LoanContract, RepaymentPlan, RepaymentRecord]
+    functions: [assessApplicationRisk, compareLoanOptions]
+    actions:
+      submitApplication:         { requires_confirmation: true }
+      runCreditCheck:            { requires_confirmation: false }
+      approveLoan:               { requires_confirmation: true }
+      rejectLoan:                { requires_confirmation: true }
+      adjustLoanTerms:           { requires_confirmation: true }
+      recordRepayment:           { requires_confirmation: false }
+      openCollectionCase:        { requires_confirmation: true }
+      applyCollectionStrategy:   { requires_confirmation: true }
+    data_scope: {}
+
+  risk_manager:
+    query_types: [Borrower, LoanApplication, CreditReport, LoanContract, RepaymentPlan, RepaymentRecord, CollectionCase]
+    functions: [assessApplicationRisk, evaluateLoanPortfolio, compareLoanOptions, compareCollectionOptions]
+    actions:
+      submitApplication:         { requires_confirmation: true }
+      runCreditCheck:            { requires_confirmation: false }
+      approveLoan:               { requires_confirmation: true }
+      rejectLoan:                { requires_confirmation: true }
+      adjustLoanTerms:           { requires_confirmation: true }
+      recordRepayment:           { requires_confirmation: false }
+      openCollectionCase:        { requires_confirmation: true }
+      applyCollectionStrategy:   { requires_confirmation: false }
+    data_scope: {}
+
+  admin:
+    query_types: [Borrower, LoanApplication, CreditReport, LoanContract, RepaymentPlan, RepaymentRecord, CollectionCase]
+    functions: [assessApplicationRisk, evaluateLoanPortfolio, compareLoanOptions, compareCollectionOptions]
+    actions:
+      submitApplication:         { requires_confirmation: false }
+      runCreditCheck:            { requires_confirmation: false }
+      approveLoan:               { requires_confirmation: false }
+      rejectLoan:                { requires_confirmation: false }
+      adjustLoanTerms:           { requires_confirmation: false }
+      recordRepayment:           { requires_confirmation: false }
+      openCollectionCase:        { requires_confirmation: false }
+      applyCollectionStrategy:   { requires_confirmation: false }
+    data_scope: {}

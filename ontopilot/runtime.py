@@ -231,9 +231,17 @@ class OntologyRuntime:
                 layer = "simulation"
             # Emit synthetic query-layer events so the ontology graph panel
             # highlights the object types and links touched by this function.
-            for ot in involved.get("mutated", []) + involved.get("referenced", []):
+            all_involved = set(involved.get("mutated", []) + involved.get("referenced", []))
+            for ot in all_involved:
                 self._record(turn_id, "query", f"object_query:{ot}", "success",
                              {"object_type": ot}, {"result_count": 1}, "pass", 0)
+            # Emit traverse events for links between involved types
+            for ot in all_involved:
+                ot_def = self._schema.get_object_type(ot)
+                for link_name, link_def in ot_def.links.items():
+                    if link_def.target in all_involved:
+                        self._record(turn_id, "query", f"traverse:{ot}.{link_name}", "success",
+                                     {"object_type": ot, "link": link_name}, {"result_count": 1}, "pass", 0)
         elif function_name == "compareDecisions" and isinstance(result, list):
             out_summary["involved_types"] = result[0]["involved_types"] if result else {"mutated": [], "referenced": []}
             layer = "simulation"

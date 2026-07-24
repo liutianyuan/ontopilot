@@ -196,10 +196,21 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
     | { mutated: string[]; referenced: string[] }
     | undefined
 
-  const nodeColor = (id: string) => {
-    if (involvedTypes?.mutated?.includes(id)) return { fill: '#fef3c7', stroke: '#d97706' }
-    if (involvedTypes?.referenced?.includes(id)) return { fill: '#dbeafe', stroke: '#2563eb' }
-    return { fill: '#eef2ff', stroke: '#6366f1' }
+  const nodeAppearance = (id: string): { fill: string; stroke: string; strokeWidth: number; label: string } => {
+    const isQueried = queriedNodeIds.has(id)
+    const isMutated = involvedTypes?.mutated?.includes(id)
+    const isReferenced = involvedTypes?.referenced?.includes(id)
+
+    if (isMutated) {
+      return { fill: '#fef3c7', stroke: '#d97706', strokeWidth: 3, label: '模拟修改' }
+    }
+    if (isReferenced) {
+      return { fill: '#dbeafe', stroke: '#2563eb', strokeWidth: 2.5, label: '模拟引用' }
+    }
+    if (isQueried) {
+      return { fill: '#dcfce7', stroke: '#16a34a', strokeWidth: 3, label: '本轮查询' }
+    }
+    return { fill: '#f1f5f9', stroke: '#94a3b8', strokeWidth: 1.5, label: '' }
   }
 
   const queryEvents = traceEvents.filter(e => parseQueriedNode(e) !== null || parseTraversedEdge(e) !== null)
@@ -240,30 +251,30 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {(involvedTypes || queriedNodeIds.size > 0 || traversedEdgeKeys.size > 0) && (
-        <div className="flex items-center gap-4 px-3 py-1.5 text-xs text-gray-500 border-b bg-gray-50 flex-shrink-0 flex-wrap">
+        <div className="flex items-center gap-3 px-3 py-1.5 text-xs text-gray-500 border-b bg-gray-50 flex-shrink-0 flex-wrap">
           {involvedTypes && (
             <>
               <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-200 border border-amber-600 inline-block" />
-                本次模拟修改
+                <span className="w-3 h-3 rounded-full bg-amber-100 border-2 border-amber-600 inline-block" />
+                模拟修改
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-100 border border-blue-600 inline-block" />
-                本次模拟引用
+                <span className="w-3 h-3 rounded-full bg-blue-100 border-2 border-blue-600 inline-block" />
+                模拟引用
               </span>
             </>
           )}
-          {(queriedNodeIds.size > 0 || traversedEdgeKeys.size > 0) && (
-            <>
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full border-2 border-dashed border-green-600 inline-block" />
-                本轮已查询
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-0.5 bg-green-600 inline-block" />
-                本轮已遍历
-              </span>
-            </>
+          {queriedNodeIds.size > 0 && (
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 rounded-full bg-green-100 border-2 border-green-600 inline-block" />
+              本轮查询
+            </span>
+          )}
+          {traversedEdgeKeys.size > 0 && (
+            <span className="flex items-center gap-1">
+              <span className="w-4 h-0.5 bg-green-600 inline-block rounded" />
+              本轮遍历
+            </span>
           )}
         </div>
       )}
@@ -277,7 +288,10 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
         >
           <defs>
             <marker id="ontology-graph-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#a5b4fc" />
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#cbd5e1" />
+            </marker>
+            <marker id="ontology-graph-arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#16a34a" />
             </marker>
           </defs>
           <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}>
@@ -289,20 +303,24 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
               const edgeKey = `${source.id}.${link.label}`
               const isTraversed = traversedEdgeKeys.has(edgeKey)
               const isEdgePulsing = pulsingEdgeKey === edgeKey
+              const edgeStroke = isTraversed ? '#16a34a' : '#cbd5e1'
+              const edgeWidth = isTraversed ? 3 : 1.5
               return (
                 <g key={i}>
                   <line
                     x1={source.x} y1={source.y} x2={target.x} y2={target.y}
-                    stroke={isTraversed ? '#16a34a' : '#a5b4fc'}
-                    strokeWidth={isTraversed ? 3 : 1.5}
-                    markerEnd="url(#ontology-graph-arrow)"
+                    stroke={edgeStroke}
+                    strokeWidth={edgeWidth}
+                    markerEnd={isTraversed ? 'url(#ontology-graph-arrow-active)' : 'url(#ontology-graph-arrow)'}
                     className={isEdgePulsing ? 'ontology-edge-flow' : undefined}
+                    opacity={isTraversed ? 1 : 0.6}
                   />
                   <text
                     x={(source.x + target.x) / 2}
                     y={(source.y + target.y) / 2}
                     className="fill-gray-400 text-[9px]"
                     textAnchor="middle"
+                    fill={isTraversed ? '#16a34a' : '#94a3b8'}
                   >
                     {link.label}
                   </text>
@@ -310,8 +328,7 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
               )
             })}
             {nodes.map(node => {
-              const color = nodeColor(node.id)
-              const isQueried = queriedNodeIds.has(node.id)
+              const { fill, stroke, strokeWidth } = nodeAppearance(node.id)
               const isNodePulsing = pulsingNodeId === node.id
               return (
                 <g
@@ -324,12 +341,9 @@ export function OntologyGraphPanel({ ontologyId, traceEvents }: Props) {
                   className="cursor-move"
                 >
                   {isNodePulsing && (
-                    <circle key={pulsingEventId} r={28} fill="none" stroke="#16a34a" strokeWidth={2} className="ontology-ping" />
+                    <circle key={pulsingEventId} r={30} fill="none" stroke="#16a34a" strokeWidth={3} className="ontology-ping" />
                   )}
-                  {isQueried && (
-                    <circle r={33} fill="none" stroke="#16a34a" strokeWidth={2} strokeDasharray="4 3" />
-                  )}
-                  <circle r={28} fill={color.fill} stroke={color.stroke} strokeWidth={2} />
+                  <circle r={28} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
                   <text textAnchor="middle" dy="0.35em" className="fill-gray-700 text-[11px] font-medium select-none">
                     {node.id}
                   </text>

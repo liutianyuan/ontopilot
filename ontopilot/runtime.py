@@ -217,7 +217,24 @@ class OntologyRuntime:
         ms = int((time.monotonic() - t0) * 1000)
         out_summary = {"result_count": len(result)} if isinstance(result, list) else {"result": str(result)[:200]}
         layer = "logic"
-        if function_name == "compareDecisions" and isinstance(result, list):
+
+        # Extract involved_types from function result (dict or first list element)
+        involved: dict | None = None
+        if isinstance(result, list) and result:
+            involved = result[0].get("involved_types") if isinstance(result[0], dict) else None
+        elif isinstance(result, dict):
+            involved = result.get("involved_types")
+
+        if involved:
+            out_summary["involved_types"] = involved
+            if function_name == "compareDecisions":
+                layer = "simulation"
+            # Emit synthetic query-layer events so the ontology graph panel
+            # highlights the object types and links touched by this function.
+            for ot in involved.get("mutated", []) + involved.get("referenced", []):
+                self._record(turn_id, "query", f"object_query:{ot}", "success",
+                             {"object_type": ot}, {"result_count": 1}, "pass", 0)
+        elif function_name == "compareDecisions" and isinstance(result, list):
             out_summary["involved_types"] = result[0]["involved_types"] if result else {"mutated": [], "referenced": []}
             layer = "simulation"
         audit_id = self._audit.log(user_id, "function", None, None,

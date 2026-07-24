@@ -660,6 +660,10 @@ class FunctionRegistry:
             "dti": dti,
             "recommendedMaxAmount": recommended_max,
             "reasons": reasons,
+            "involved_types": {
+                "mutated": [],
+                "referenced": ["LoanApplication", "Borrower", "CreditReport"],
+            },
         }
 
     # ── Lending: evaluateLoanPortfolio ────────────────────────────────────
@@ -754,6 +758,10 @@ class FunctionRegistry:
                 "monthlyPayment": contract.get("monthlyPayment"),
                 "lastPaymentStatus": last_status,
                 "riskFlags": risk_flags,
+                "involved_types": {
+                    "mutated": [],
+                    "referenced": ["LoanContract", "RepaymentRecord", "Borrower"],
+                },
             })
 
         # Sort by overdueDays descending (worst first)
@@ -822,6 +830,10 @@ class FunctionRegistry:
                 "annualRate": annual_rate,
                 "termMonths": term_months,
                 "principal": principal,
+                "involved_types": {
+                    "mutated": [],
+                    "referenced": ["LoanApplication", "Borrower"],
+                },
             })
 
         return results
@@ -888,6 +900,10 @@ class FunctionRegistry:
                 "estimatedCost": cost,
                 "netRecovery": net_recovery,
                 "recommendation": recommendation,
+                "involved_types": {
+                    "mutated": [],
+                    "referenced": ["CollectionCase"],
+                },
             })
 
         results.sort(key=lambda x: x["netRecovery"], reverse=True)

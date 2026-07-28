@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { OntologyDetail } from '../types'
 
 interface OntologyInfo {
   id: string
@@ -7,18 +8,6 @@ interface OntologyInfo {
   object_types: string[]
   actions: string[]
   functions: string[]
-}
-
-interface OntologyDetail {
-  object_types: {
-    name: string
-    description: string
-    properties: { name: string; type: string; description: string }[]
-    links: { name: string; target: string }[]
-  }[]
-  actions: { name: string; params: string[]; description: string }[]
-  functions: { name: string; params: string[]; description: string }[]
-  tools: string[]
 }
 
 interface Props {

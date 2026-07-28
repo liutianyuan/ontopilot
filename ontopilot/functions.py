@@ -59,6 +59,31 @@ FUNCTION_PARAMS = {
         "required": {"supplierId": "str — supplier ID"},
         "optional": {"materialId": "str — material ID"},
     },
+
+    # ── Lending functions ────────────────────────────────────────────────
+    "assessApplicationRisk": {
+        "description": "Comprehensive risk assessment for a loan application (credit score + DTI + overdue history + inquiry count)",
+        "required": {"applicationId": "str — application ID to assess"},
+    },
+    "evaluateLoanPortfolio": {
+        "description": "Scan all loan contracts and their repayment records, identify high-risk contracts",
+        "required": {},
+        "optional": {"filters": "dict — e.g. {'status': 'active', 'overdueMinDays': 30}"},
+    },
+    "compareLoanOptions": {
+        "description": "Compare multiple loan options with equal-installment simulation (monthly payment, total interest, DTI, risk)",
+        "required": {
+            "applicationId": "str — application ID",
+            "options": "list[dict] — each option with name, annualRate, termMonths, principal. e.g. [{'name': '方案A', 'annualRate': 0.065, 'termMonths': 36, 'principal': 150000}]",
+        },
+    },
+    "compareCollectionOptions": {
+        "description": "Compare collection strategies by estimated recovery rate, amount, and cost",
+        "required": {
+            "caseId": "str — collection case ID",
+            "options": "list[dict] — each option with strategy. e.g. [{'strategy': 'phone_call'}, {'strategy': 'door_visit'}]",
+        },
+    },
 }
 
 class FunctionRegistry:
@@ -78,6 +103,11 @@ class FunctionRegistry:
             "analyzeSupplyRisk": self._analyze_supply_risk,
             "compareSupplierProposals": self._compare_supplier_proposals,
             "calculateCostEfficiency": self._calculate_cost_efficiency,
+            # Lending functions
+            "assessApplicationRisk": self._assess_application_risk,
+            "evaluateLoanPortfolio": self._evaluate_loan_portfolio,
+            "compareLoanOptions": self._compare_loan_options,
+            "compareCollectionOptions": self._compare_collection_options,
         }
 
     def call(self, function_name: str, params: dict) -> list | dict:
@@ -536,3 +566,345 @@ class FunctionRegistry:
             "qualityScore": supplier.get("qualityScore"),
             "certLevel": supplier.get("certLevel"),
         }
+
+    # ── Lending: assessApplicationRisk ────────────────────────────────────
+
+    def _assess_application_risk(self, params: dict) -> dict:
+        application_id: str = params.get("applicationId", "")
+        if not application_id:
+            return {"error": "Missing applicationId param"}
+
+        application = self._store.get("LoanApplication", application_id)
+        if not application:
+            return {"error": f"LoanApplication {application_id} not found"}
+
+        borrower = self._store.get("Borrower", application.get("borrowerId", ""))
+        if not borrower:
+            return {"error": f"Borrower not found for application {application_id}"}
+
+        # Look up credit report by querying directly
+        all_reports = self._store.query("CreditReport", {"applicationId": application_id}, None)
+        report = all_reports[0] if all_reports else {}
+
+        score = 0
+        reasons = []
+
+        # Credit score assessment
+        cs = report.get("creditScore", borrower.get("creditScore", 600))
+        if cs >= 750:
+            score += 0
+        elif cs >= 650:
+            score += 15
+            reasons.append(f"征信分中等 ({cs})")
+        elif cs >= 550:
+            score += 30
+            reasons.append(f"征信分偏低 ({cs})")
+        else:
+            score += 50
+            reasons.append(f"征信分严重偏低 ({cs})")
+
+        # DTI assessment
+        dti = borrower.get("dti", 0)
+        if dti > 0.50:
+            score += 30
+            reasons.append(f"债务收入比过高 ({dti*100:.0f}%)")
+        elif dti > 0.36:
+            score += 15
+            reasons.append(f"债务收入比偏高 ({dti*100:.0f}%)")
+
+        # Inquiry count
+        inquiry_count = report.get("inquiryCount6m", 0)
+        if inquiry_count >= 6:
+            score += 20
+            reasons.append(f"近6个月查询次数过多 ({inquiry_count})")
+        elif inquiry_count >= 3:
+            score += 10
+            reasons.append(f"近6个月查询次数偏多 ({inquiry_count})")
+
+        # Historical defaults
+        defaults = borrower.get("historicalDefaults", 0)
+        if defaults >= 3:
+            score += 25
+            reasons.append(f"历史逾期次数多 ({defaults})")
+        elif defaults >= 1:
+            score += 10
+            reasons.append(f"有历史逾期记录 ({defaults})")
+
+        # Fraud flag
+        if report.get("fraudFlag"):
+            score += 40
+            reasons.append("反欺诈标记命中")
+
+        # Risk level
+        if score >= 60:
+            risk_level = "reject"
+        elif score >= 35:
+            risk_level = "high"
+        elif score >= 15:
+            risk_level = "medium"
+        else:
+            risk_level = "low"
+
+        # Recommended max amount: monthlyIncome * 36 / (1 + DTI), capped at application amount
+        monthly_income = borrower.get("monthlyIncome", 0)
+        recommended_max = round(monthly_income * 36 / max(1 + dti, 1.1), -3)
+        if risk_level == "reject":
+            recommended_max = 0
+
+        return {
+            "applicationId": application_id,
+            "borrowerName": borrower.get("name"),
+            "riskLevel": risk_level,
+            "riskScore": score,
+            "creditScore": cs,
+            "dti": dti,
+            "recommendedMaxAmount": recommended_max,
+            "reasons": reasons,
+            "involved_types": {
+                "mutated": [],
+                "referenced": ["LoanApplication", "Borrower", "CreditReport"],
+            },
+        }
+
+    # ── Lending: evaluateLoanPortfolio ────────────────────────────────────
+
+    def _evaluate_loan_portfolio(self, params: dict) -> list[dict]:
+        filters = params.get("filters") or {}
+        status_filter = filters.get("status")
+        overdue_min = filters.get("overdueMinDays", 0)
+
+        if status_filter:
+            contracts = self._store.query("LoanContract", {"status": status_filter}, None)
+        else:
+            # Get all non-paid-off contracts
+            contracts = self._store.query("LoanContract", {}, None)
+
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        results = []
+
+        for contract in contracts:
+            # Skip paid-off contracts unless explicitly requested
+            if not status_filter and contract.get("status") == "paid_off":
+                continue
+            if contract.get("status") not in ("active", "defaulted", "restructured"):
+                continue
+
+            cid = contract.get("contractId")
+            records = self._store.query("RepaymentRecord", {"contractId": cid}, None)
+            if not records:
+                continue
+
+            # Analyze repayment patterns
+            records.sort(key=lambda r: r.get("dueDate", ""))
+            last_3 = [r for r in records if r.get("status") != "upcoming"][-3:]
+
+            statuses = [r.get("status") for r in last_3]
+            consecutive_missed = 0
+            consecutive_late = 0
+            for s in reversed(statuses):
+                if s == "missed":
+                    consecutive_missed += 1
+                elif s == "late":
+                    consecutive_late += 1
+                else:
+                    break
+
+            # Calculate overdue days from earliest missed record
+            overdue_days = 0
+            for r in records:
+                if r.get("status") == "missed":
+                    due_raw = r.get("dueDate", "")
+                    if due_raw:
+                        due = datetime.fromisoformat(due_raw)
+                        if due.tzinfo is None:
+                            due = due.replace(tzinfo=timezone.utc)
+                        days = (now - due).days
+                        overdue_days = max(overdue_days, days)
+
+            if overdue_days < overdue_min:
+                continue
+
+            risk_flags = []
+            if consecutive_missed >= 2:
+                risk_flags.append(f"连续{consecutive_missed}期未还")
+            if consecutive_late >= 2:
+                risk_flags.append(f"连续{consecutive_late}期迟还")
+            if any(r.get("status") == "missed" for r in records):
+                risk_flags.append("有未还记录")
+            if contract.get("status") == "defaulted":
+                risk_flags.append("合同已违约")
+            if contract.get("status") == "restructured":
+                risk_flags.append("合同已重组")
+
+            # Calculate remaining principal using linear amortization
+            paid_count = sum(1 for r in records if r.get("status") in ("on_time", "late"))
+            monthly_principal = contract.get("principal", 0) / max(contract.get("termMonths", 1), 1)
+            remaining_principal = max(0, round(contract.get("principal", 0) - paid_count * monthly_principal, 2))
+
+            # Borrower info
+            borrower = self._store.get("Borrower", contract.get("borrowerId", "")) or {}
+            monthly_income = borrower.get("monthlyIncome", 0)
+            if remaining_principal > monthly_income * 36:
+                risk_flags.append("剩余本金过高(>月收入36倍)")
+
+            last_status = last_3[-1].get("status") if last_3 else "unknown"
+            results.append({
+                "contractId": cid,
+                "borrowerName": borrower.get("name", ""),
+                "status": contract.get("status"),
+                "overdueDays": overdue_days,
+                "remainingPrincipal": remaining_principal,
+                "monthlyPayment": contract.get("monthlyPayment"),
+                "lastPaymentStatus": last_status,
+                "riskFlags": risk_flags,
+                "involved_types": {
+                    "mutated": [],
+                    "referenced": ["LoanContract", "RepaymentRecord", "Borrower"],
+                },
+            })
+
+        # Sort by overdueDays descending (worst first)
+        results.sort(key=lambda x: x["overdueDays"], reverse=True)
+        return results
+
+    # ── Lending: compareLoanOptions ───────────────────────────────────────
+
+    def _compare_loan_options(self, params: dict) -> list[dict]:
+        application_id: str = params.get("applicationId", "")
+        options: list[dict] = params.get("options", [])
+
+        application = self._store.get("LoanApplication", application_id)
+        if not application:
+            return [{"error": f"LoanApplication {application_id} not found"}]
+
+        borrower = self._store.get("Borrower", application.get("borrowerId", ""))
+        if not borrower:
+            return [{"error": f"Borrower not found for application {application_id}"}]
+
+        monthly_income = borrower.get("monthlyIncome", 0)
+        existing_dti = borrower.get("dti", 0)
+        # Estimate existing monthly debt payments from DTI
+        existing_monthly_debt = monthly_income * existing_dti
+
+        results = []
+        for option in options:
+            name = option.get("name", option.get("strategy", "unknown"))
+            annual_rate = option.get("annualRate", 0.072)
+            term_months = option.get("termMonths", 36)
+            principal = option.get("principal", application.get("amount", 100000))
+
+            # Equal installment formula: M = P * r * (1+r)^n / ((1+r)^n - 1)
+            monthly_rate = annual_rate / 12.0
+            if monthly_rate == 0:
+                monthly_payment = principal / term_months
+            else:
+                factor = (1 + monthly_rate) ** term_months
+                monthly_payment = principal * monthly_rate * factor / (factor - 1)
+
+            total_interest = monthly_payment * term_months - principal
+
+            # New DTI
+            new_monthly_debt = existing_monthly_debt + monthly_payment
+            new_dti = round(new_monthly_debt / monthly_income, 3) if monthly_income > 0 else 1.0
+
+            # Affordability assessment
+            if new_dti <= 0.36:
+                affordability = "good"
+                risk_level = "low"
+            elif new_dti <= 0.50:
+                affordability = "caution"
+                risk_level = "medium"
+            else:
+                affordability = "high_risk"
+                risk_level = "high"
+
+            results.append({
+                "optionName": name,
+                "monthlyPayment": round(monthly_payment, 2),
+                "totalInterest": round(total_interest, 2),
+                "totalRepayment": round(principal + total_interest, 2),
+                "newDti": new_dti,
+                "affordabilityScore": affordability,
+                "riskLevel": risk_level,
+                "annualRate": annual_rate,
+                "termMonths": term_months,
+                "principal": principal,
+                "involved_types": {
+                    "mutated": [],
+                    "referenced": ["LoanApplication", "Borrower"],
+                },
+            })
+
+        return results
+
+    # ── Lending: compareCollectionOptions ─────────────────────────────────
+
+    def _compare_collection_options(self, params: dict) -> list[dict]:
+        case_id: str = params.get("caseId", "")
+        options: list[dict] = params.get("options", [])
+
+        case = self._store.get("CollectionCase", case_id)
+        if not case:
+            return [{"error": f"CollectionCase {case_id} not found"}]
+
+        overdue_days = case.get("overdueDays", 0)
+        outstanding = case.get("outstandingAmount", 0)
+
+        # Recovery rate model by overdue range and strategy
+        BASE_RATES = {
+            "sms":       {(0, 30): 0.70, (31, 90): 0.40, (91, 9999): 0.15},
+            "phone_call":{(0, 30): 0.85, (31, 90): 0.55, (91, 9999): 0.30},
+            "door_visit":{(0, 30): 0.90, (31, 90): 0.65, (91, 9999): 0.30},
+            "legal_notice": {(0, 30): 0.80, (31, 90): 0.50, (91, 9999): 0.35},
+            "external_agency": {(0, 30): 0.60, (31, 90): 0.45, (91, 9999): 0.35},
+        }
+        COST_PER_ACTION = {
+            "sms": 5, "phone_call": 30, "door_visit": 150,
+            "legal_notice": 300, "external_agency": 0,  # external is % based
+        }
+
+        def get_recovery_rate(strategy: str, days: int) -> float:
+            rates = BASE_RATES.get(strategy, {})
+            for (lo, hi), rate in rates.items():
+                if lo <= days <= hi:
+                    return rate
+            return 0.3
+
+        results = []
+        for option in options:
+            strategy = option.get("strategy", "phone_call")
+            recovery_rate = get_recovery_rate(strategy, overdue_days)
+            recovery_amount = round(outstanding * recovery_rate, 2)
+
+            if strategy == "external_agency":
+                cost = round(recovery_amount * 0.20, 2)
+            else:
+                cost = COST_PER_ACTION.get(strategy, 30)
+
+            net_recovery = round(recovery_amount - cost, 2)
+
+            if recovery_rate >= 0.60:
+                recommendation = "推荐"
+            elif recovery_rate >= 0.40:
+                recommendation = "可考虑"
+            else:
+                recommendation = "效果有限"
+
+            results.append({
+                "strategy": strategy,
+                "overdueDays": overdue_days,
+                "outstandingAmount": outstanding,
+                "estimatedRecoveryRate": round(recovery_rate, 2),
+                "estimatedRecoveryAmount": recovery_amount,
+                "estimatedCost": cost,
+                "netRecovery": net_recovery,
+                "recommendation": recommendation,
+                "involved_types": {
+                    "mutated": [],
+                    "referenced": ["CollectionCase"],
+                },
+            })
+
+        results.sort(key=lambda x: x["netRecovery"], reverse=True)
+        return results

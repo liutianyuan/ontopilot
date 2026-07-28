@@ -1,0 +1,47 @@
+# Context sources for lending — 信贷金融场景上下文
+context_sources:
+  - type: scoped_query
+    object_type: LoanApplication
+    filters:
+      status: [pending, under_review]
+    properties:
+      - applicationId
+      - borrowerId
+      - amount
+      - termMonths
+      - purpose
+      - status
+      - appliedAt
+    max_objects: 20
+
+  - type: scoped_query
+    object_type: LoanContract
+    filters:
+      status: [active, defaulted]
+    properties:
+      - contractId
+      - applicationId
+      - borrowerId
+      - principal
+      - annualRate
+      - termMonths
+      - monthlyPayment
+      - status
+      - originatedAt
+    max_objects: 20
+
+  - type: scoped_query
+    object_type: CollectionCase
+    filters:
+      status: [open, in_progress]
+    properties:
+      - caseId
+      - contractId
+      - borrowerId
+      - overdueDays
+      - outstandingAmount
+      - strategy
+      - status
+      - assignedTo
+      - openedAt
+    max_objects: 20

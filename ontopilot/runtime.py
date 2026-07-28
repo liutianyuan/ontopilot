@@ -216,9 +216,38 @@ class OntologyRuntime:
         result = self._functions.call(function_name, params)
         ms = int((time.monotonic() - t0) * 1000)
         out_summary = {"result_count": len(result)} if isinstance(result, list) else {"result": str(result)[:200]}
+        layer = "logic"
+
+        # Extract involved_types from function result (dict or first list element)
+        involved: dict | None = None
+        if isinstance(result, list) and result:
+            involved = result[0].get("involved_types") if isinstance(result[0], dict) else None
+        elif isinstance(result, dict):
+            involved = result.get("involved_types")
+
+        if involved:
+            out_summary["involved_types"] = involved
+            if function_name == "compareDecisions":
+                layer = "simulation"
+            # Emit synthetic query-layer events so the ontology graph panel
+            # highlights the object types and links touched by this function.
+            all_involved = set(involved.get("mutated", []) + involved.get("referenced", []))
+            for ot in all_involved:
+                self._record(turn_id, "query", f"object_query:{ot}", "success",
+                             {"object_type": ot}, {"result_count": 1}, "pass", 0)
+            # Emit traverse events for links between involved types
+            for ot in all_involved:
+                ot_def = self._schema.get_object_type(ot)
+                for link_name, link_def in ot_def.links.items():
+                    if link_def.target in all_involved:
+                        self._record(turn_id, "query", f"traverse:{ot}.{link_name}", "success",
+                                     {"object_type": ot, "link": link_name}, {"result_count": 1}, "pass", 0)
+        elif function_name == "compareDecisions" and isinstance(result, list):
+            out_summary["involved_types"] = result[0]["involved_types"] if result else {"mutated": [], "referenced": []}
+            layer = "simulation"
         audit_id = self._audit.log(user_id, "function", None, None,
                                    {"function": function_name, "params": params}, out_summary, "pass")
-        self._record(turn_id, "logic", f"function:{function_name}", "success",
+        self._record(turn_id, layer, f"function:{function_name}", "success",
                      {"function": function_name, "params": params},
                      out_summary, "pass", ms, audit_id=audit_id)
         return result
@@ -279,7 +308,9 @@ class OntologyRuntime:
         ms = int((time.monotonic() - t0) * 1000)
         audit_id = self._audit.log(user_id, "simulation", "Shipment", shipment_id,
                                    {"options": options}, {"result_count": len(result)}, "pass")
+        involved_types = result[0]["involved_types"] if result else {"mutated": [], "referenced": []}
         self._record(turn_id, "simulation", "simulate_decisions", "success",
                      {"shipment_id": shipment_id, "options": [o["name"] for o in options]},
-                     {"result_count": len(result)}, "pass", ms, audit_id=audit_id)
+                     {"result_count": len(result), "involved_types": involved_types},
+                     "pass", ms, audit_id=audit_id)
         return result

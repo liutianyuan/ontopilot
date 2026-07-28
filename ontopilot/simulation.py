@@ -15,18 +15,25 @@ class SingleStepSimulator:
         results = []
         for option in options:
             forked = self._store.fork()
-            outcome = self._simulate_option(shipment_id, option, forked)
-            results.append({"option_name": option["name"], "simulated_outcome": outcome})
+            outcome, touched = self._simulate_option(shipment_id, option, forked)
+            results.append({
+                "option_name": option["name"],
+                "simulated_outcome": outcome,
+                "involved_types": {
+                    "mutated": sorted(touched["mutated"]),
+                    "referenced": sorted(touched["referenced"] - touched["mutated"]),
+                },
+            })
         return results
 
-    def _simulate_option(self, shipment_id: str, option: dict, store: ObjectStore) -> dict:
+    def _simulate_option(self, shipment_id: str, option: dict, store: ObjectStore) -> tuple[dict, dict]:
         action = option.get("action")
         params = option.get("params", {})
         now = datetime.now(timezone.utc)
 
         shipment = store.get("Shipment", shipment_id)
         if shipment is None:
-            return {"error": f"Shipment {shipment_id} not found"}
+            return {"error": f"Shipment {shipment_id} not found"}, {"mutated": set(), "referenced": set()}
 
         old_carrier_id = shipment.get("carrierId", "")
         old_carrier = store.get("Carrier", old_carrier_id) or {}
@@ -77,7 +84,7 @@ class SingleStepSimulator:
         else:
             customer_risk = "medium"
 
-        return {
+        outcome = {
             "estimated_delivery": estimated_delivery.isoformat(),
             "delay_hours": round(delay_hours, 1),
             "cost_delta": cost_delta,
@@ -89,3 +96,8 @@ class SingleStepSimulator:
                 "不考虑天气、交通、其他订单运力竞争",
             ],
         }
+        touched = {
+            "mutated": {"Shipment"},
+            "referenced": {"Carrier", "Warehouse", "Order"} | ({"Customer"} if customer else set()),
+        }
+        return outcome, touched

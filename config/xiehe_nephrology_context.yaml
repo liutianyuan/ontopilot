@@ -1,0 +1,41 @@
+# Context sources for xiehe nephrology ontology.
+context_sources:
+  - type: scoped_query
+    object_type: Disease
+    properties: [id, name, nameCn, nameEn, aliases, patientId, diagnosisStatus, guideline]
+    max_objects: 30
+
+  - type: scoped_query
+    object_type: DiseaseStage
+    properties: [id, name, nameCn, nameEn, threshold, patientId, stageStatus, actionRequirement]
+    max_objects: 30
+
+  - type: scoped_query
+    object_type: Indicator
+    properties: [id, name, nameCn, nameEn, patientId, value, unit, observedAt, sourceSystem, status]
+    max_objects: 80
+
+  - type: scoped_query
+    object_type: Drug
+    properties: [id, name, nameCn, nameEn, drugClass, patientId, orderStatus, dose, contraindicationEgfr, contraindicationK]
+    max_objects: 50
+
+  - type: scoped_query
+    object_type: TestItem
+    properties: [id, name, nameCn, nameEn, patientId, orderStatus, orderedAt, completedAt, sourceSystem]
+    max_objects: 50
+
+  - type: scoped_query
+    object_type: QualityMetric
+    properties: [id, name, nameCn, nameEn, patientId, metricType, value, thresholdValue, thresholdTime, measuredAt]
+    max_objects: 30
+
+  - type: scoped_query
+    object_type: RuleConcept
+    properties: [id, name, nameCn, nameEn, input, guideline, thresholdCritical, thresholdExtreme, thresholdMinEgfr, timeWindow]
+    max_objects: 30
+
+  - type: scoped_query
+    object_type: CohortCriteria
+    properties: [id, name, nameCn, nameEn, includeConditions, excludeConditions]
+    max_objects: 10

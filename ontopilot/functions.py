@@ -84,6 +84,56 @@ FUNCTION_PARAMS = {
             "options": "list[dict] — each option with strategy. e.g. [{'strategy': 'phone_call'}, {'strategy': 'door_visit'}]",
         },
     },
+
+    # ── Xiehe nephrology rules ────────────────────────────────────────
+    "aKIStage1DiagnosisRule": {
+        "description": "Evaluate AKI stage 1 from 48-hour serum creatinine increase",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
+    "aRBACEISafetyRule": {
+        "description": "Check ACEI/ARB medication safety from potassium and renal artery stenosis",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
+    "cKDStagingRule": {
+        "description": "Stage CKD from eGFR using KDIGO G1-G5 thresholds",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
+    "cKDMBDWarningRule": {
+        "description": "Warn CKD-MBD risk from phosphorus and PTH",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
+    "cKD4AdmissionMandatoryAssessmentRule": {
+        "description": "Check whether CKD G4 admission assessment tests are completed within 24 hours",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
+    "sGLT2iUsageRule": {
+        "description": "Assess SGLT2i eligibility from eGFR threshold",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
+    "metforminSafetyRule": {
+        "description": "Assess metformin safety from eGFR",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
+    "proteinuriaStratificationRule": {
+        "description": "Classify proteinuria from UACR or 24h urine protein",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
+    "dialysisAdequacyQCRule": {
+        "description": "Check dialysis adequacy from Kt/V",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
+    "dialysisMonthlyReviewQCRule": {
+        "description": "Check dialysis monthly review gap",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
+    "finerenoneUsageRule": {
+        "description": "Assess finerenone eligibility from diabetic nephropathy, UACR, and potassium",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
+    "hyperkalemiaCriticalValueRule": {
+        "description": "Classify potassium warning, critical, or extreme level",
+        "required": {"patientId": "str — simulated patient ID"},
+    },
 }
 
 class FunctionRegistry:
@@ -108,6 +158,19 @@ class FunctionRegistry:
             "evaluateLoanPortfolio": self._evaluate_loan_portfolio,
             "compareLoanOptions": self._compare_loan_options,
             "compareCollectionOptions": self._compare_collection_options,
+            # Xiehe nephrology rules
+            "aKIStage1DiagnosisRule": self._aki_stage1_diagnosis_rule,
+            "aRBACEISafetyRule": self._arb_acei_safety_rule,
+            "cKDStagingRule": self._ckd_staging_rule,
+            "cKDMBDWarningRule": self._ckd_mbd_warning_rule,
+            "cKD4AdmissionMandatoryAssessmentRule": self._ckd4_admission_assessment_rule,
+            "sGLT2iUsageRule": self._sglt2i_usage_rule,
+            "metforminSafetyRule": self._metformin_safety_rule,
+            "proteinuriaStratificationRule": self._proteinuria_stratification_rule,
+            "dialysisAdequacyQCRule": self._dialysis_adequacy_qc_rule,
+            "dialysisMonthlyReviewQCRule": self._dialysis_monthly_review_qc_rule,
+            "finerenoneUsageRule": self._finerenone_usage_rule,
+            "hyperkalemiaCriticalValueRule": self._hyperkalemia_critical_value_rule,
         }
 
     def call(self, function_name: str, params: dict) -> list | dict:
@@ -122,6 +185,243 @@ class FunctionRegistry:
                     "required_params": list(info["required"].keys()),
                 }
         return self._fns[function_name](params)
+
+    # ── Xiehe nephrology helpers ─────────────────────────────────────────────
+
+    def _patient_id(self, params: dict) -> str:
+        return str(params.get("patientId") or params.get("patient_id") or params.get("objectId") or "")
+
+    def _facts(self, object_type: str, patient_id: str) -> list[dict]:
+        if object_type not in self._schema.object_type_names:
+            return []
+        return self._store.query(object_type, {"patientId": patient_id}, None)
+
+    def _latest_fact(self, object_type: str, patient_id: str, names: set[str]) -> dict | None:
+        names_l = {n.lower() for n in names}
+        matches = []
+        for obj in self._facts(object_type, patient_id):
+            candidates = [
+                obj.get("name"),
+                obj.get("nameCn"),
+                obj.get("nameEn"),
+                obj.get("metricType"),
+            ]
+            if any(str(c or "").lower() in names_l for c in candidates):
+                matches.append(obj)
+        if not matches:
+            return None
+        return sorted(matches, key=lambda o: str(o.get("observedAt") or o.get("measuredAt") or o.get("orderedAt") or ""))[-1]
+
+    def _value(self, patient_id: str, names: set[str]) -> float | None:
+        fact = self._latest_fact("Indicator", patient_id, names)
+        if fact is None:
+            return None
+        try:
+            return float(fact.get("value"))
+        except (TypeError, ValueError):
+            return None
+
+    def _result(
+        self,
+        rule: str,
+        patient_id: str,
+        status: str,
+        conclusion: str,
+        evidence: dict,
+        recommendations: list[str],
+        severity: str = "info",
+    ) -> dict:
+        return {
+            "rule": rule,
+            "patientId": patient_id,
+            "status": status,
+            "severity": severity,
+            "conclusion": conclusion,
+            "evidence": evidence,
+            "recommendations": recommendations,
+            "involved_types": {
+                "referenced": ["Disease", "DiseaseStage", "Indicator", "Drug", "TestItem", "QualityMetric", "RuleConcept"],
+                "mutated": [],
+            },
+        }
+
+    def _ckd_stage(self, egfr: float | None) -> str | None:
+        if egfr is None:
+            return None
+        if egfr >= 90:
+            return "CKD G1"
+        if egfr >= 60:
+            return "CKD G2"
+        if egfr >= 45:
+            return "CKD G3a"
+        if egfr >= 30:
+            return "CKD G3b"
+        if egfr >= 15:
+            return "CKD G4"
+        return "CKD G5"
+
+    def _has_active_drug(self, patient_id: str, classes_or_names: set[str]) -> bool:
+        names_l = {n.lower() for n in classes_or_names}
+        for drug in self._facts("Drug", patient_id):
+            if drug.get("orderStatus") not in (None, "active"):
+                continue
+            candidates = [drug.get("name"), drug.get("nameCn"), drug.get("nameEn"), drug.get("drugClass")]
+            if any(str(c or "").lower() in names_l for c in candidates):
+                return True
+        return False
+
+    def _has_diagnosis(self, patient_id: str, names: set[str]) -> bool:
+        names_l = {n.lower() for n in names}
+        for disease in self._facts("Disease", patient_id):
+            candidates = [disease.get("name"), disease.get("nameCn"), disease.get("nameEn"), disease.get("aliases")]
+            if any(str(c or "").lower() in names_l for c in candidates):
+                return True
+        return False
+
+    # ── Xiehe nephrology rules ───────────────────────────────────────────────
+
+    def _ckd_staging_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        egfr = self._value(patient_id, {"egfr", "估算肾小球滤过率"})
+        stage = self._ckd_stage(egfr)
+        if stage is None:
+            return self._result("cKDStagingRule", patient_id, "insufficient_data", "缺少 eGFR，无法分期", {}, ["补充 eGFR 或 Scr 计算结果"])
+        recs = ["按当前分期随访"]
+        severity = "info"
+        if stage == "CKD G4":
+            severity = "high"
+            recs = ["24h 内完善肾动态显像和心脏超声", "评估血透/腹透通路与营养状态"]
+        elif stage == "CKD G5":
+            severity = "critical"
+            recs = ["启动替代治疗/透析紧急评估", "评估肾移植登记适应症"]
+        return self._result("cKDStagingRule", patient_id, "evaluated", f"eGFR={egfr:g}，判定为 {stage}", {"eGFR": egfr, "stage": stage}, recs, severity)
+
+    def _hyperkalemia_critical_value_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        k = self._value(patient_id, {"血钾", "potassium", "k"})
+        if k is None:
+            return self._result("hyperkalemiaCriticalValueRule", patient_id, "insufficient_data", "缺少血钾值", {}, ["补充 LIS 血钾结果"])
+        if k > 6.5:
+            return self._result("hyperkalemiaCriticalValueRule", patient_id, "triggered", f"血钾={k:g} mmol/L，极高危红色预警", {"potassium": k}, ["立即处置高钾", "4h 复查血钾", "30 分钟无处置则质控上报"], "critical")
+        if k > 5.5:
+            return self._result("hyperkalemiaCriticalValueRule", patient_id, "triggered", f"血钾={k:g} mmol/L，高钾危急值", {"potassium": k}, ["弹窗通知医师确认", "暂停升高血钾药物", "4h 复查血钾"], "high")
+        if k >= 5.0:
+            return self._result("hyperkalemiaCriticalValueRule", patient_id, "warning", f"血钾={k:g} mmol/L，处于预警区间", {"potassium": k}, ["复查血钾并评估饮食/用药"], "medium")
+        return self._result("hyperkalemiaCriticalValueRule", patient_id, "pass", f"血钾={k:g} mmol/L，未触发高钾预警", {"potassium": k}, [], "info")
+
+    def _metformin_safety_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        egfr = self._value(patient_id, {"egfr", "估算肾小球滤过率"})
+        active = self._has_active_drug(patient_id, {"二甲双胍", "metformin"})
+        if egfr is None:
+            return self._result("metforminSafetyRule", patient_id, "insufficient_data", "缺少 eGFR，无法判断二甲双胍安全性", {}, ["补充 eGFR"])
+        evidence = {"eGFR": egfr, "activeMetforminOrder": active}
+        if egfr < 30:
+            status = "blocked" if active else "contraindicated"
+            return self._result("metforminSafetyRule", patient_id, status, f"eGFR={egfr:g}<30，二甲双胍禁用", evidence, ["拦截或停用二甲双胍", "考虑 GLP-1RA 或胰岛素方案"], "critical")
+        if egfr < 45:
+            return self._result("metforminSafetyRule", patient_id, "warning", f"eGFR={egfr:g}，二甲双胍需减量并监测", evidence, ["减量", "密切监测肾功能"], "medium")
+        return self._result("metforminSafetyRule", patient_id, "pass", f"eGFR={egfr:g}，二甲双胍可常规使用", evidence, [], "info")
+
+    def _arb_acei_safety_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        k = self._value(patient_id, {"血钾", "potassium", "k"})
+        active = self._has_active_drug(patient_id, {"arb", "acei", "厄贝沙坦", "irbesartan"})
+        stenosis = self._has_diagnosis(patient_id, {"肾动脉狭窄", "renal artery stenosis"})
+        evidence = {"potassium": k, "activeARBOrACEIOrder": active, "renalArteryStenosis": stenosis}
+        if stenosis:
+            return self._result("aRBACEISafetyRule", patient_id, "blocked", "存在肾动脉狭窄，ACEI/ARB 禁用", evidence, ["拦截 ACEI/ARB", "选择替代降压方案"], "critical")
+        if k is not None and k > 5.5:
+            return self._result("aRBACEISafetyRule", patient_id, "blocked" if active else "warning", f"血钾={k:g}>5.5，ACEI/ARB 应暂停或强提醒", evidence, ["暂停厄贝沙坦/ACEI/ARB", "纠正血钾后评估复用", "可考虑 CCB 替代"], "high")
+        return self._result("aRBACEISafetyRule", patient_id, "pass", "未触发 ACEI/ARB 禁忌条件", evidence, [], "info")
+
+    def _sglt2i_usage_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        egfr = self._value(patient_id, {"egfr", "估算肾小球滤过率"})
+        if egfr is None:
+            return self._result("sGLT2iUsageRule", patient_id, "insufficient_data", "缺少 eGFR", {}, ["补充 eGFR"])
+        if egfr >= 20:
+            return self._result("sGLT2iUsageRule", patient_id, "eligible", f"eGFR={egfr:g}>=20，可评估 SGLT2i 肾心获益", {"eGFR": egfr}, ["评估达格列净等 SGLT2i 使用"], "info")
+        return self._result("sGLT2iUsageRule", patient_id, "not_recommended", f"eGFR={egfr:g}<20，不建议启动或应停用 SGLT2i", {"eGFR": egfr}, ["避免新启动 SGLT2i"], "medium")
+
+    def _finerenone_usage_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        uacr = self._value(patient_id, {"uacr", "尿白蛋白肌酐比"})
+        k = self._value(patient_id, {"血钾", "potassium", "k"})
+        has_dn = self._has_diagnosis(patient_id, {"糖尿病肾病", "diabetic nephropathy"})
+        evidence = {"diabeticNephropathy": has_dn, "UACR": uacr, "potassium": k}
+        if k is not None and k > 5.4:
+            return self._result("finerenoneUsageRule", patient_id, "warning", f"血钾={k:g}>5.4，非奈利酮需预警停用", evidence, ["先纠正血钾，再评估非奈利酮"], "high")
+        if has_dn and uacr is not None and uacr >= 30 and k is not None and k <= 5.4:
+            return self._result("finerenoneUsageRule", patient_id, "eligible", "糖尿病肾病且 UACR>=30、血钾<=5.4，可评估非奈利酮", evidence, ["评估非奈利酮适应症"], "info")
+        return self._result("finerenoneUsageRule", patient_id, "not_applicable", "未满足非奈利酮评估条件", evidence, [], "info")
+
+    def _proteinuria_stratification_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        uacr = self._value(patient_id, {"uacr", "尿白蛋白肌酐比"})
+        protein24h = self._value(patient_id, {"24h尿蛋白", "24h urine protein"})
+        evidence = {"UACR": uacr, "24hUrineProtein": protein24h}
+        if (uacr is not None and uacr >= 300) or (protein24h is not None and protein24h > 3):
+            return self._result("proteinuriaStratificationRule", patient_id, "heavy", "大量蛋白尿/重度蛋白尿", evidence, ["提示 CKD 进展高风险", "评估肾穿刺和心血管风险"], "high")
+        if uacr is not None and uacr >= 30:
+            return self._result("proteinuriaStratificationRule", patient_id, "moderate", "微量白蛋白尿", evidence, ["强化降蛋白尿治疗"], "medium")
+        return self._result("proteinuriaStratificationRule", patient_id, "normal", "未达到蛋白尿预警阈值", evidence, [], "info")
+
+    def _ckd_mbd_warning_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        phosphorus = self._value(patient_id, {"血磷", "phosphorus"})
+        pth = self._value(patient_id, {"pth", "甲状旁腺激素"})
+        triggered = (phosphorus is not None and phosphorus > 1.78) or (pth is not None and pth > 600)
+        evidence = {"phosphorus": phosphorus, "PTH": pth}
+        if triggered:
+            return self._result("cKDMBDWarningRule", patient_id, "triggered", "触发 CKD-MBD 代谢异常预警", evidence, ["启动磷结合剂/活性维生素D评估", "监测钙磷 PTH"], "high")
+        return self._result("cKDMBDWarningRule", patient_id, "pass", "未触发 CKD-MBD 预警", evidence, [], "info")
+
+    def _dialysis_adequacy_qc_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        ktv = self._value(patient_id, {"kt/v", "透析充分性 kt/v"})
+        if ktv is None:
+            return self._result("dialysisAdequacyQCRule", patient_id, "insufficient_data", "缺少 Kt/V", {}, ["补充透析充分性指标"])
+        if ktv < 1.2:
+            return self._result("dialysisAdequacyQCRule", patient_id, "qc_defect", f"Kt/V={ktv:g}<1.2，透析充分性不达标", {"Kt/V": ktv}, ["调整透析时长/超滤方案", "纳入质控整改清单"], "high")
+        return self._result("dialysisAdequacyQCRule", patient_id, "pass", f"Kt/V={ktv:g}，透析充分性达标", {"Kt/V": ktv}, [], "info")
+
+    def _dialysis_monthly_review_qc_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        gap_fact = self._latest_fact("QualityMetric", patient_id, {"monthlyReviewGapDays", "月度复查间隔"})
+        gap = float(gap_fact.get("value")) if gap_fact and gap_fact.get("value") is not None else None
+        if gap is None:
+            return self._result("dialysisMonthlyReviewQCRule", patient_id, "insufficient_data", "缺少月度复查间隔", {}, ["补充最近复查日期"])
+        if gap > 30:
+            return self._result("dialysisMonthlyReviewQCRule", patient_id, "qc_defect", f"距上次复查 {gap:g} 天，超过 30 天", {"reviewGapDays": gap}, ["推送肾功能/血常规/电解质复查", "纳入透析质控清单"], "high")
+        return self._result("dialysisMonthlyReviewQCRule", patient_id, "pass", f"距上次复查 {gap:g} 天，符合月度复查要求", {"reviewGapDays": gap}, [], "info")
+
+    def _ckd4_admission_assessment_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        egfr = self._value(patient_id, {"egfr", "估算肾小球滤过率"})
+        stage = self._ckd_stage(egfr)
+        hours_fact = self._latest_fact("QualityMetric", patient_id, {"admissionHours", "入院后评估计时"})
+        hours = float(hours_fact.get("value")) if hours_fact and hours_fact.get("value") is not None else None
+        tests = self._facts("TestItem", patient_id)
+        missing = [
+            name for name in ("肾动态显像", "心脏超声")
+            if not any(t.get("nameCn") == name and t.get("orderStatus") in ("ordered", "completed") for t in tests)
+        ]
+        evidence = {"eGFR": egfr, "stage": stage, "admissionHours": hours, "missingTests": missing}
+        if stage == "CKD G4" and missing and (hours is None or hours >= 24):
+            return self._result("cKD4AdmissionMandatoryAssessmentRule", patient_id, "overdue", "CKD G4 入院评估未在 24h 内完成", evidence, ["提醒开具肾动态显像", "提醒开具心脏超声", "记录质控缺陷"], "high")
+        if stage == "CKD G4" and missing:
+            return self._result("cKD4AdmissionMandatoryAssessmentRule", patient_id, "pending", "CKD G4 入院评估仍有未完成项目", evidence, ["在 24h 内完成缺失检查"], "medium")
+        return self._result("cKD4AdmissionMandatoryAssessmentRule", patient_id, "pass", "未触发 CKD4 入院强制评估缺陷", evidence, [], "info")
+
+    def _aki_stage1_diagnosis_rule(self, params: dict) -> dict:
+        patient_id = self._patient_id(params)
+        delta = self._value(patient_id, {"scrdelta48h", "48小时肌酐升高值", "scr 48h delta"})
+        if delta is None:
+            return self._result("aKIStage1DiagnosisRule", patient_id, "insufficient_data", "缺少 48h Scr 升高值", {}, ["补充 48h Scr 动态"])
+        if delta >= 26.5:
+            return self._result("aKIStage1DiagnosisRule", patient_id, "triggered", f"48h Scr 升高 {delta:g} umol/L，符合 AKI 1期预警", {"scrDelta48h": delta}, ["评估容量状态", "停用肾毒性药物", "追踪肾功能恢复"], "high")
+        return self._result("aKIStage1DiagnosisRule", patient_id, "pass", f"48h Scr 升高 {delta:g} umol/L，未达 AKI 1期阈值", {"scrDelta48h": delta}, [], "info")
 
     # ── calculateDelayRisk ────────────────────────────────────────────────────
 

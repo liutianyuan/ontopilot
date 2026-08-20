@@ -1,0 +1,447 @@
+# Cardiovascular seed data — 心血管诊疗测试数据
+Hospital:
+  - hospitalId: HOSP-001
+    name: 华东心血管中心
+    region: 华东
+    level: tertiary
+    cathLabCapacityPerDay: 18
+    ccuBeds: 36
+  - hospitalId: HOSP-002
+    name: 华南胸痛中心
+    region: 华南
+    level: tertiary
+    cathLabCapacityPerDay: 14
+    ccuBeds: 28
+  - hospitalId: HOSP-003
+    name: 城北社区慢病管理中心
+    region: 华北
+    level: community
+    cathLabCapacityPerDay: 0
+    ccuBeds: 4
+
+Clinician:
+  - clinicianId: DOC-001
+    name: 李明
+    title: 主任医师
+    department: 心内科
+    hospitalId: HOSP-001
+  - clinicianId: DOC-002
+    name: 周婧
+    title: 副主任医师
+    department: 心血管介入中心
+    hospitalId: HOSP-001
+  - clinicianId: DOC-003
+    name: 陈浩
+    title: 主治医师
+    department: 胸痛中心
+    hospitalId: HOSP-002
+  - clinicianId: NUR-001
+    name: 王岚
+    title: 专科护士
+    department: CCU
+    hospitalId: HOSP-002
+
+Patient:
+  - patientId: PAT-001
+    name: 张伟
+    sex: male
+    age: 62
+    region: 华东
+    riskLevel: very_high
+    primaryDiagnosis: 急性ST段抬高型心肌梗死
+    attendingDoctorId: DOC-002
+  - patientId: PAT-002
+    name: 刘芳
+    sex: female
+    age: 58
+    region: 华南
+    riskLevel: high
+    primaryDiagnosis: 不稳定型心绞痛
+    attendingDoctorId: DOC-003
+  - patientId: PAT-003
+    name: 赵强
+    sex: male
+    age: 71
+    region: 华东
+    riskLevel: high
+    primaryDiagnosis: 慢性心力衰竭
+    attendingDoctorId: DOC-001
+  - patientId: PAT-004
+    name: 孙敏
+    sex: female
+    age: 49
+    region: 华北
+    riskLevel: medium
+    primaryDiagnosis: 原发性高血压
+    attendingDoctorId: DOC-001
+  - patientId: PAT-005
+    name: 马超
+    sex: male
+    age: 67
+    region: 华南
+    riskLevel: very_high
+    primaryDiagnosis: 房颤合并卒中高风险
+    attendingDoctorId: DOC-003
+
+Encounter:
+  - encounterId: ENC-001
+    patientId: PAT-001
+    hospitalId: HOSP-001
+    encounterType: emergency
+    startTime: "2026-07-13T01:20:00+08:00"
+    status: active
+    chiefComplaint: 胸痛2小时伴大汗
+    triageLevel: critical
+  - encounterId: ENC-002
+    patientId: PAT-002
+    hospitalId: HOSP-002
+    encounterType: inpatient
+    startTime: "2026-07-12T15:10:00+08:00"
+    status: active
+    chiefComplaint: 反复胸闷3天
+    triageLevel: urgent
+  - encounterId: ENC-003
+    patientId: PAT-003
+    hospitalId: HOSP-001
+    encounterType: follow_up
+    startTime: "2026-07-10T09:00:00+08:00"
+    status: discharged
+    chiefComplaint: 活动后气促随访
+    triageLevel: routine
+  - encounterId: ENC-004
+    patientId: PAT-004
+    hospitalId: HOSP-003
+    encounterType: outpatient
+    startTime: "2026-07-13T10:30:00+08:00"
+    status: scheduled
+    chiefComplaint: 血压控制不佳
+    triageLevel: routine
+  - encounterId: ENC-005
+    patientId: PAT-005
+    hospitalId: HOSP-002
+    encounterType: inpatient
+    startTime: "2026-07-11T20:45:00+08:00"
+    status: active
+    chiefComplaint: 心悸伴头晕
+    triageLevel: urgent
+
+Diagnosis:
+  - diagnosisId: DX-001
+    patientId: PAT-001
+    encounterId: ENC-001
+    code: I21.0
+    name: 急性前壁ST段抬高型心肌梗死
+    severity: life_threatening
+    diagnosedAt: "2026-07-13T01:42:00+08:00"
+    active: true
+  - diagnosisId: DX-002
+    patientId: PAT-002
+    encounterId: ENC-002
+    code: I20.0
+    name: 不稳定型心绞痛
+    severity: severe
+    diagnosedAt: "2026-07-12T16:05:00+08:00"
+    active: true
+  - diagnosisId: DX-003
+    patientId: PAT-003
+    encounterId: ENC-003
+    code: I50.9
+    name: 慢性心力衰竭
+    severity: moderate
+    diagnosedAt: "2026-07-10T09:30:00+08:00"
+    active: true
+  - diagnosisId: DX-004
+    patientId: PAT-005
+    encounterId: ENC-005
+    code: I48
+    name: 心房颤动
+    severity: severe
+    diagnosedAt: "2026-07-11T21:30:00+08:00"
+    active: true
+
+VitalSign:
+  - vitalId: VS-001
+    patientId: PAT-001
+    encounterId: ENC-001
+    measuredAt: "2026-07-13T01:35:00+08:00"
+    systolicBP: 92
+    diastolicBP: 58
+    heartRate: 112
+    spo2: 93
+    chestPainScore: 8
+  - vitalId: VS-002
+    patientId: PAT-002
+    encounterId: ENC-002
+    measuredAt: "2026-07-12T16:00:00+08:00"
+    systolicBP: 148
+    diastolicBP: 92
+    heartRate: 96
+    spo2: 97
+    chestPainScore: 5
+  - vitalId: VS-003
+    patientId: PAT-003
+    encounterId: ENC-003
+    measuredAt: "2026-07-10T09:15:00+08:00"
+    systolicBP: 126
+    diastolicBP: 74
+    heartRate: 88
+    spo2: 95
+    chestPainScore: 0
+  - vitalId: VS-004
+    patientId: PAT-004
+    encounterId: ENC-004
+    measuredAt: "2026-07-13T10:10:00+08:00"
+    systolicBP: 168
+    diastolicBP: 102
+    heartRate: 82
+    spo2: 98
+    chestPainScore: 0
+  - vitalId: VS-005
+    patientId: PAT-005
+    encounterId: ENC-005
+    measuredAt: "2026-07-11T21:00:00+08:00"
+    systolicBP: 136
+    diastolicBP: 84
+    heartRate: 138
+    spo2: 96
+    chestPainScore: 2
+
+LabResult:
+  - labId: LAB-001
+    patientId: PAT-001
+    encounterId: ENC-001
+    testName: 高敏肌钙蛋白T
+    value: 1.86
+    unit: ng/mL
+    referenceRange: "<0.014"
+    abnormalFlag: critical
+    collectedAt: "2026-07-13T01:50:00+08:00"
+  - labId: LAB-002
+    patientId: PAT-001
+    encounterId: ENC-001
+    testName: LDL-C
+    value: 3.9
+    unit: mmol/L
+    referenceRange: "<1.8 for very high risk"
+    abnormalFlag: high
+    collectedAt: "2026-07-13T02:05:00+08:00"
+  - labId: LAB-003
+    patientId: PAT-003
+    encounterId: ENC-003
+    testName: NT-proBNP
+    value: 2460
+    unit: pg/mL
+    referenceRange: "<125"
+    abnormalFlag: high
+    collectedAt: "2026-07-10T09:20:00+08:00"
+  - labId: LAB-004
+    patientId: PAT-005
+    encounterId: ENC-005
+    testName: INR
+    value: 1.1
+    unit: ratio
+    referenceRange: "0.8-1.2"
+    abnormalFlag: normal
+    collectedAt: "2026-07-11T22:00:00+08:00"
+
+ImagingStudy:
+  - studyId: IMG-001
+    patientId: PAT-001
+    encounterId: ENC-001
+    modality: ECG
+    finding: V1-V4导联ST段抬高，提示急性前壁心肌梗死
+    severity: critical
+    performedAt: "2026-07-13T01:32:00+08:00"
+  - studyId: IMG-002
+    patientId: PAT-001
+    encounterId: ENC-001
+    modality: coronary_angiography
+    finding: 前降支近段闭塞，拟行急诊PCI
+    severity: critical
+    performedAt: "2026-07-13T02:30:00+08:00"
+  - studyId: IMG-003
+    patientId: PAT-003
+    encounterId: ENC-003
+    modality: echocardiography
+    finding: 左室射血分数38%，左室扩大
+    severity: moderate
+    performedAt: "2026-07-10T10:00:00+08:00"
+  - studyId: IMG-004
+    patientId: PAT-005
+    encounterId: ENC-005
+    modality: ECG
+    finding: 快速心房颤动，平均心室率138次/分
+    severity: severe
+    performedAt: "2026-07-11T21:10:00+08:00"
+
+Medication:
+  - medicationId: MED-001
+    genericName: 阿司匹林
+    drugClass: antiplatelet
+    route: oral
+    contraindicationNotes: 活动性出血或明确过敏禁用
+  - medicationId: MED-002
+    genericName: 替格瑞洛
+    drugClass: antiplatelet
+    route: oral
+    contraindicationNotes: 颅内出血史慎用
+  - medicationId: MED-003
+    genericName: 阿托伐他汀
+    drugClass: statin
+    route: oral
+    contraindicationNotes: 活动性肝病禁用
+  - medicationId: MED-004
+    genericName: 美托洛尔
+    drugClass: beta_blocker
+    route: oral
+    contraindicationNotes: 严重心动过缓或房室传导阻滞禁用
+  - medicationId: MED-005
+    genericName: 依诺肝素
+    drugClass: anticoagulant
+    route: subcutaneous
+    contraindicationNotes: 活动性出血禁用
+  - medicationId: MED-006
+    genericName: 沙库巴曲缬沙坦
+    drugClass: acei_arb
+    route: oral
+    contraindicationNotes: 妊娠禁用，低血压慎用
+
+Prescription:
+  - prescriptionId: RX-001
+    patientId: PAT-001
+    encounterId: ENC-001
+    medicationId: MED-001
+    dose: 300mg负荷后100mg qd
+    frequency: qd
+    status: active
+    startTime: "2026-07-13T01:45:00+08:00"
+    stopReason: null
+  - prescriptionId: RX-002
+    patientId: PAT-001
+    encounterId: ENC-001
+    medicationId: MED-002
+    dose: 180mg负荷后90mg bid
+    frequency: bid
+    status: active
+    startTime: "2026-07-13T01:46:00+08:00"
+    stopReason: null
+  - prescriptionId: RX-003
+    patientId: PAT-001
+    encounterId: ENC-001
+    medicationId: MED-003
+    dose: 40mg
+    frequency: qn
+    status: active
+    startTime: "2026-07-13T02:10:00+08:00"
+    stopReason: null
+  - prescriptionId: RX-004
+    patientId: PAT-003
+    encounterId: ENC-003
+    medicationId: MED-006
+    dose: 50mg
+    frequency: bid
+    status: active
+    startTime: "2026-07-10T10:20:00+08:00"
+    stopReason: null
+  - prescriptionId: RX-005
+    patientId: PAT-005
+    encounterId: ENC-005
+    medicationId: MED-005
+    dose: 6000IU
+    frequency: q12h
+    status: planned
+    startTime: "2026-07-11T22:30:00+08:00"
+    stopReason: null
+
+Procedure:
+  - procedureId: PROC-001
+    patientId: PAT-001
+    encounterId: ENC-001
+    name: 急诊冠脉造影及PCI
+    status: planned
+    scheduledAt: "2026-07-13T02:20:00+08:00"
+    performedAt: null
+    priority: emergent
+    outcome: null
+  - procedureId: PROC-002
+    patientId: PAT-002
+    encounterId: ENC-002
+    name: 择期冠脉造影
+    status: planned
+    scheduledAt: "2026-07-14T09:00:00+08:00"
+    performedAt: null
+    priority: urgent
+    outcome: null
+  - procedureId: PROC-003
+    patientId: PAT-005
+    encounterId: ENC-005
+    name: 经食道超声评估后电复律
+    status: planned
+    scheduledAt: "2026-07-12T10:00:00+08:00"
+    performedAt: null
+    priority: urgent
+    outcome: null
+
+CarePlan:
+  - planId: PLAN-001
+    patientId: PAT-001
+    encounterId: ENC-001
+    goal: STEMI急诊再灌注、二级预防和CCU监护
+    riskCategory: very_high
+    status: active
+    ownerId: DOC-002
+    nextReviewAt: "2026-07-13T08:00:00+08:00"
+  - planId: PLAN-002
+    patientId: PAT-003
+    encounterId: ENC-003
+    goal: 优化心衰药物并监测容量状态
+    riskCategory: high
+    status: active
+    ownerId: DOC-001
+    nextReviewAt: "2026-07-24T09:00:00+08:00"
+  - planId: PLAN-003
+    patientId: PAT-004
+    encounterId: ENC-004
+    goal: 家庭血压监测和降压方案调整
+    riskCategory: medium
+    status: draft
+    ownerId: DOC-001
+    nextReviewAt: "2026-08-13T10:00:00+08:00"
+
+Alert:
+  - alertId: ALT-001
+    patientId: PAT-001
+    encounterId: ENC-001
+    alertType: chest_pain
+    severity: critical
+    message: STEMI患者需优先进入导管室并记录门球时间
+    status: open
+    createdBy: triage_system
+    createdAt: "2026-07-13T01:40:00+08:00"
+  - alertId: ALT-002
+    patientId: PAT-001
+    encounterId: ENC-001
+    alertType: lab_critical
+    severity: high
+    message: 高敏肌钙蛋白T显著升高
+    status: acknowledged
+    createdBy: lab_system
+    createdAt: "2026-07-13T02:00:00+08:00"
+  - alertId: ALT-003
+    patientId: PAT-005
+    encounterId: ENC-005
+    alertType: arrhythmia
+    severity: high
+    message: 快速房颤伴卒中高风险，需评估抗凝和节律控制
+    status: open
+    createdBy: monitor_system
+    createdAt: "2026-07-11T21:15:00+08:00"
+  - alertId: ALT-004
+    patientId: PAT-004
+    encounterId: ENC-004
+    alertType: hypertension
+    severity: medium
+    message: 门诊血压超过160/100 mmHg，建议复测并调整方案
+    status: open
+    createdBy: outpatient_system
+    createdAt: "2026-07-13T10:15:00+08:00"

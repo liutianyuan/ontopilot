@@ -28,7 +28,7 @@ interface Props {
   onLogout: () => void
 }
 
-const ROLES = ['admin', 'dispatcher', 'regional_manager']
+const ROLES = ['admin', 'dispatcher', 'regional_manager', 'nephrology_doctor']
 
 export function UserManagement({ currentUser, onLogout }: Props) {
   const [users, setUsers] = useState<User[]>([])
@@ -213,7 +213,7 @@ export function UserManagement({ currentUser, onLogout }: Props) {
             <div key={u.id} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3">
               <div className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white ${
-                  u.role === 'admin' ? 'bg-purple-500' : u.role === 'regional_manager' ? 'bg-blue-500' : 'bg-green-500'
+                  u.role === 'admin' ? 'bg-purple-500' : u.role === 'regional_manager' ? 'bg-blue-500' : u.role === 'nephrology_doctor' ? 'bg-rose-500' : 'bg-green-500'
                 }`}>
                   {u.display_name.charAt(0)}
                 </div>

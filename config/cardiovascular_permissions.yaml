@@ -1,0 +1,36 @@
+# Permissions — 心血管诊疗测试权限
+roles:
+  cardiology_nurse:
+    query_types: [Patient, Encounter, VitalSign, LabResult, ImagingStudy, Prescription, CarePlan, Alert]
+    functions: []
+    actions:
+      updateEncounterStatus:     { requires_confirmation: false }
+      updatePrescriptionStatus:  { requires_confirmation: true }
+      scheduleProcedure:         { requires_confirmation: true }
+      updateCarePlanReview:      { requires_confirmation: false }
+      resolveAlert:              { requires_confirmation: true }
+    data_scope:
+      Hospital.region: [华南]
+
+  cardiologist:
+    query_types: [Patient, Clinician, Hospital, Encounter, Diagnosis, VitalSign, LabResult, ImagingStudy, Medication, Prescription, Procedure, CarePlan, Alert]
+    functions: []
+    actions:
+      updateEncounterStatus:     { requires_confirmation: false }
+      updatePrescriptionStatus:  { requires_confirmation: true }
+      scheduleProcedure:         { requires_confirmation: true }
+      updateCarePlanReview:      { requires_confirmation: false }
+      resolveAlert:              { requires_confirmation: true }
+    data_scope:
+      Hospital.region: [华东, 华南]
+
+  cardiovascular_admin:
+    query_types: [Patient, Clinician, Hospital, Encounter, Diagnosis, VitalSign, LabResult, ImagingStudy, Medication, Prescription, Procedure, CarePlan, Alert]
+    functions: []
+    actions:
+      updateEncounterStatus:     { requires_confirmation: false }
+      updatePrescriptionStatus:  { requires_confirmation: false }
+      scheduleProcedure:         { requires_confirmation: false }
+      updateCarePlanReview:      { requires_confirmation: false }
+      resolveAlert:              { requires_confirmation: false }
+    data_scope: {}

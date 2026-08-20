@@ -41,6 +41,15 @@ interface SessionSummary {
   role: string
 }
 
+interface StoredSessionMessage {
+  role: string
+  content: string
+  timestamp: string
+  awaiting_confirmation?: boolean
+  trace_events?: TraceEvent[]
+  turn_id?: string
+}
+
 export default function App() {
   const [user, setUser] = useState<LoginUser | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -94,13 +103,18 @@ export default function App() {
         return
       }
       setSessionId(sid)
-      setMessages((data.session.messages || []).map((m: { role: string; content: string; timestamp: string }) => ({
+      const restoredMessages = ((data.session.messages || []) as StoredSessionMessage[]).map((m) => ({
         role: m.role === 'human' ? 'user' : 'assistant',
         content: m.content,
         timestamp: m.timestamp,
-      })))
-      setAwaitingConfirmation(false)
-      setTraceEvents([])
+        awaiting_confirmation: m.awaiting_confirmation,
+        trace_events: m.trace_events,
+        turn_id: m.turn_id,
+      } as Message))
+      const lastTraceMessage = [...restoredMessages].reverse().find(m => m.role === 'assistant' && m.trace_events?.length)
+      setMessages(restoredMessages)
+      setAwaitingConfirmation(restoredMessages.some(m => Boolean(m.awaiting_confirmation)))
+      setTraceEvents(lastTraceMessage?.trace_events || [])
       setStartedChat(true)
       setShowWelcome(false)
     } catch (e) {
@@ -229,6 +243,8 @@ export default function App() {
         content: data.response,
         timestamp: new Date().toISOString(),
         awaiting_confirmation: data.awaiting_confirmation,
+        trace_events: teArray,
+        turn_id: data.turn_id,
       }
       setMessages(prev => [...prev, assistantMsg])
     } catch (err) {
@@ -290,7 +306,7 @@ export default function App() {
               <span className="text-sm font-semibold text-gray-700">OntoPilot</span>
               <span className="text-gray-300">|</span>
               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
-                {user.display_name} · {user.role === 'admin' ? '管理员' : user.role === 'regional_manager' ? '区域经理' : '调度员'}
+                {user.display_name} · {user.role === 'admin' ? '管理员' : user.role === 'regional_manager' ? '区域经理' : user.role === 'nephrology_doctor' ? '肾内科医生' : '调度员'}
               </span>
               {/* Model selector */}
               {models.length > 0 && (

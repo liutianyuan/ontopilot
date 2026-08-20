@@ -94,15 +94,17 @@ class SessionStore:
             self._sessions[session_id]["updated_at"] = datetime.now(timezone.utc).isoformat()
             self._persist(session_id)
 
-    def add_message(self, session_id: str, role: str, content: str) -> None:
+    def add_message(self, session_id: str, role: str, content: str, **extra: object) -> None:
         session = self._sessions.get(session_id)
         if not session:
             return
-        session.setdefault("messages", []).append({
+        message = {
             "role": role,
             "content": content,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        }
+        message.update(extra)
+        session.setdefault("messages", []).append(message)
         session["updated_at"] = datetime.now(timezone.utc).isoformat()
         # Set title from first user message
         if role == "human" and not session.get("title"):

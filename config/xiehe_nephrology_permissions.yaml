@@ -1,0 +1,40 @@
+# Permissions for xiehe nephrology ontology.
+roles:
+  nephrology_doctor:
+    query_types: [ActionConcept, BodyPart, CohortCriteria, Complication, DataField, DataLineage, DataSystem, Department, Disease, DiseaseStage, Document, Drug, Formula, Guideline, Indicator, PatientGroup, Process, QualityMetric, RiskFactor, RuleConcept, Symptom, TestItem, Treatment]
+    functions: [aKIStage1DiagnosisRule, aRBACEISafetyRule, cKDStagingRule, cKDMBDWarningRule, cKD4AdmissionMandatoryAssessmentRule, sGLT2iUsageRule, metforminSafetyRule, proteinuriaStratificationRule, dialysisAdequacyQCRule, dialysisMonthlyReviewQCRule, finerenoneUsageRule, hyperkalemiaCriticalValueRule]
+    actions:
+      aRBACEIHyperkalemiaBlock: { requires_confirmation: true }
+      cKD4ImagingAssessmentReminder: { requires_confirmation: true }
+      metforminPrescriptionBlock: { requires_confirmation: true }
+      researchCohortDataExtraction: { requires_confirmation: true }
+      dialysisMonthlyReviewQCReport: { requires_confirmation: true }
+      hyperkalemiaCriticalAlert: { requires_confirmation: true }
+    data_scope: {}
+
+  quality_manager:
+    query_types: [Disease, DiseaseStage, Drug, Indicator, PatientGroup, QualityMetric, RuleConcept, TestItem, Treatment, Complication]
+    functions: [dialysisAdequacyQCRule, dialysisMonthlyReviewQCRule, hyperkalemiaCriticalValueRule, cKD4AdmissionMandatoryAssessmentRule]
+    actions:
+      dialysisMonthlyReviewQCReport: { requires_confirmation: true }
+      hyperkalemiaCriticalAlert: { requires_confirmation: true }
+    data_scope: {}
+
+  researcher:
+    query_types: [CohortCriteria, Disease, DiseaseStage, Drug, Indicator, PatientGroup, DataField, DataLineage, DataSystem, Guideline]
+    functions: [proteinuriaStratificationRule, cKDStagingRule]
+    actions:
+      researchCohortDataExtraction: { requires_confirmation: true }
+    data_scope: {}
+
+  admin:
+    query_types: [ActionConcept, BodyPart, CohortCriteria, Complication, DataField, DataLineage, DataSystem, Department, Disease, DiseaseStage, Document, Drug, Formula, Guideline, Indicator, PatientGroup, Process, QualityMetric, RiskFactor, RuleConcept, Symptom, TestItem, Treatment]
+    functions: [aKIStage1DiagnosisRule, aRBACEISafetyRule, cKDStagingRule, cKDMBDWarningRule, cKD4AdmissionMandatoryAssessmentRule, sGLT2iUsageRule, metforminSafetyRule, proteinuriaStratificationRule, dialysisAdequacyQCRule, dialysisMonthlyReviewQCRule, finerenoneUsageRule, hyperkalemiaCriticalValueRule]
+    actions:
+      aRBACEIHyperkalemiaBlock: { requires_confirmation: false }
+      cKD4ImagingAssessmentReminder: { requires_confirmation: false }
+      metforminPrescriptionBlock: { requires_confirmation: false }
+      researchCohortDataExtraction: { requires_confirmation: false }
+      dialysisMonthlyReviewQCReport: { requires_confirmation: false }
+      hyperkalemiaCriticalAlert: { requires_confirmation: false }
+    data_scope: {}

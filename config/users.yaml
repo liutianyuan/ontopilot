@@ -14,3 +14,8 @@ users:
   password: mgr123
   role: regional_manager
   username: manager
+- display_name: 肾内科医生
+  id: nephro_001
+  password: nephro123
+  role: nephrology_doctor
+  username: nephro

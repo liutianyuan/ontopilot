@@ -1,0 +1,1666 @@
+metadata:
+  name: 协和肾病本体建模
+  domain: 医疗
+  source: nano-ontoprompt
+  source_ontology_id: faec50f3-96fb-466f-bf4a-04b0432bfd64
+  source_version: v0.1
+  source_status: created
+  entity_count: 110
+  relation_count: 70
+  logic_rule_count: 12
+  action_count: 6
+object_types:
+  ActionConcept:
+    description: 协和肾病本体建模 / ActionConcept concepts (5 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: ActionConcept primary key generated from nano-ontoprompt entity
+          id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      targetSystem:
+        type: string
+        required: false
+        description: target_system
+      triggerType:
+        type: string
+        required: false
+        description: trigger_type
+  BodyPart:
+    description: 协和肾病本体建模 / BodyPart concepts (3 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: BodyPart primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      sourceComment:
+        type: string
+        required: false
+        description: source_comment
+  CohortCriteria:
+    description: 协和肾病本体建模 / CohortCriteria concepts (1 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: CohortCriteria primary key generated from nano-ontoprompt entity
+          id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      excludeConditions:
+        type: string
+        required: false
+        description: exclude_conditions
+      includeConditions:
+        type: string
+        required: false
+        description: include_conditions
+      extractionStatus:
+        type: string
+        required: false
+        description: Simulated research cohort extraction workflow status
+      actionReason:
+        type: string
+        required: false
+        description: Simulated action rationale shown in action preview
+      targetSystem:
+        type: string
+        required: false
+        description: Simulated downstream system for action execution
+      lastAction:
+        type: string
+        required: false
+        description: Last simulated action applied to this object
+      excludedByDiseaseId:
+        type: string
+        required: false
+        description: Synthetic FK for relation excluded_by -> Disease (2 source relations)
+      includedByDiseaseId:
+        type: string
+        required: false
+        description: Synthetic FK for relation included_by -> Disease (1 source relations)
+      includedByDiseaseStageId:
+        type: string
+        required: false
+        description: Synthetic FK for relation included_by -> DiseaseStage (1 source
+          relations)
+    links:
+      excludedByDisease:
+        target: Disease
+        foreign_key: excludedByDiseaseId
+      includedByDisease:
+        target: Disease
+        foreign_key: includedByDiseaseId
+      includedByDiseaseStage:
+        target: DiseaseStage
+        foreign_key: includedByDiseaseStageId
+  Complication:
+    description: 协和肾病本体建模 / Complication concepts (5 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: Complication primary key generated from nano-ontoprompt entity
+          id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      criticalIndicator:
+        type: string
+        required: false
+        description: critical_indicator
+      indicators:
+        type: string
+        required: false
+        description: indicators
+      monitorIndicator:
+        type: string
+        required: false
+        description: monitor_indicator
+      riskFactors:
+        type: string
+        required: false
+        description: risk_factors
+      sourceComment:
+        type: string
+        required: false
+        description: source_comment
+      hasComplicationComplicationId:
+        type: string
+        required: false
+        description: Synthetic FK for relation has_complication -> Complication (1
+          source relations)
+    links:
+      hasComplicationComplication:
+        target: Complication
+        foreign_key: hasComplicationComplicationId
+  DataField:
+    description: 协和肾病本体建模 / DataField concepts (3 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: DataField primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      dataType:
+        type: string
+        required: false
+        description: data_type
+      sourceField:
+        type: string
+        required: false
+        description: source_field
+      sourceTable:
+        type: string
+        required: false
+        description: source_table
+      mapsToDrugId:
+        type: string
+        required: false
+        description: Synthetic FK for relation maps_to -> Drug (1 source relations)
+      mapsToIndicatorId:
+        type: string
+        required: false
+        description: Synthetic FK for relation maps_to -> Indicator (2 source relations)
+    links:
+      mapsToDrug:
+        target: Drug
+        foreign_key: mapsToDrugId
+      mapsToIndicator:
+        target: Indicator
+        foreign_key: mapsToIndicatorId
+  DataLineage:
+    description: 协和肾病本体建模 / DataLineage concepts (1 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: DataLineage primary key generated from nano-ontoprompt entity
+          id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      source:
+        type: string
+        required: false
+        description: source
+      target:
+        type: string
+        required: false
+        description: target
+  DataSystem:
+    description: 协和肾病本体建模 / DataSystem concepts (9 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: DataSystem primary key generated from nano-ontoprompt entity
+          id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      role:
+        type: string
+        required: false
+        description: role
+      flowsToDataSystemId:
+        type: string
+        required: false
+        description: Synthetic FK for relation flows_to -> DataSystem (5 source relations)
+    links:
+      flowsToDataSystem:
+        target: DataSystem
+        foreign_key: flowsToDataSystemId
+  Department:
+    description: 协和肾病本体建模 / Department concepts (4 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: Department primary key generated from nano-ontoprompt entity
+          id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      sourceComment:
+        type: string
+        required: false
+        description: source_comment
+      sourceSystem:
+        type: string
+        required: false
+        description: source_system
+  Disease:
+    description: 协和肾病本体建模 / Disease concepts (7 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: Disease primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      aliases:
+        type: string
+        required: false
+        description: aliases
+      guideline:
+        type: string
+        required: false
+        description: guideline
+      hasBodyPart:
+        type: string
+        required: false
+        description: has_body_part
+      hasCause:
+        type: string
+        required: false
+        description: has_cause
+      researchExclusion:
+        type: bool
+        required: false
+        description: research_exclusion
+      patientId:
+        type: string
+        required: false
+        description: Simulated patient id for patient-level diagnosis facts
+      diagnosisStatus:
+        type: string
+        required: false
+        description: active, history, or excluded
+      sourceComment:
+        type: string
+        required: false
+        description: source_comment
+      diagnosedByGuidelineId:
+        type: string
+        required: false
+        description: Synthetic FK for relation diagnosed_by -> Guideline (2 source
+          relations)
+      hasCauseRiskFactorId:
+        type: string
+        required: false
+        description: Synthetic FK for relation has_cause -> RiskFactor (2 source relations)
+      hasCauseSymptomId:
+        type: string
+        required: false
+        description: Synthetic FK for relation has_cause -> Symptom (1 source relations)
+      hasComplicationComplicationId:
+        type: string
+        required: false
+        description: Synthetic FK for relation has_complication -> Complication (4
+          source relations)
+      hasDepartmentDepartmentId:
+        type: string
+        required: false
+        description: Synthetic FK for relation has_department -> Department (1 source
+          relations)
+    links:
+      diagnosedByGuideline:
+        target: Guideline
+        foreign_key: diagnosedByGuidelineId
+      hasCauseRiskFactor:
+        target: RiskFactor
+        foreign_key: hasCauseRiskFactorId
+      hasCauseSymptom:
+        target: Symptom
+        foreign_key: hasCauseSymptomId
+      hasComplicationComplication:
+        target: Complication
+        foreign_key: hasComplicationComplicationId
+      hasDepartmentDepartment:
+        target: Department
+        foreign_key: hasDepartmentDepartmentId
+  DiseaseStage:
+    description: 协和肾病本体建模 / DiseaseStage concepts (7 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: DiseaseStage primary key generated from nano-ontoprompt entity
+          id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      actionRequirement:
+        type: string
+        required: false
+        description: action_requirement
+      sourceComment:
+        type: string
+        required: false
+        description: source_comment
+      threshold:
+        type: string
+        required: false
+        description: threshold
+      triggerCondition:
+        type: string
+        required: false
+        description: trigger_condition
+      patientId:
+        type: string
+        required: false
+        description: Simulated patient id for patient-level staging facts
+      stageStatus:
+        type: string
+        required: false
+        description: current, historical, or suspected
+      assessmentStatus:
+        type: string
+        required: false
+        description: Simulated CKD admission assessment workflow status
+      reminderStatus:
+        type: string
+        required: false
+        description: Simulated reminder acknowledgement status
+      actionReason:
+        type: string
+        required: false
+        description: Simulated action rationale shown in action preview
+      actionChannel:
+        type: string
+        required: false
+        description: Simulated channel used to deliver the action
+      lastAction:
+        type: string
+        required: false
+        description: Last simulated action applied to this object
+  Document:
+    description: 协和肾病本体建模 / Document concepts (5 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: Document primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      docSummary:
+        type: string
+        required: false
+        description: doc_summary
+      extractionMethod:
+        type: string
+        required: false
+        description: extraction_method
+      filename:
+        type: string
+        required: false
+        description: filename
+      recordId:
+        type: string
+        required: false
+        description: record_id
+      rowType:
+        type: string
+        required: false
+        description: row_type
+      sectionCount:
+        type: int
+        required: false
+        description: section_count
+      sectionIndex:
+        type: int
+        required: false
+        description: section_index
+      sectionTitle:
+        type: string
+        required: false
+        description: section_title
+      sourceFile:
+        type: string
+        required: false
+        description: source_file
+      textChars:
+        type: int
+        required: false
+        description: text_chars
+      documentId:
+        type: string
+        required: false
+        description: Synthetic FK for relation 包含 -> Document (4 source relations)
+      processId:
+        type: string
+        required: false
+        description: Synthetic FK for relation 包含 -> Process (1 source relations)
+    links:
+      document:
+        target: Document
+        foreign_key: documentId
+      process:
+        target: Process
+        foreign_key: processId
+  Drug:
+    description: 协和肾病本体建模 / Drug concepts (9 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: Drug primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      contraindicationEgfr:
+        type: int
+        required: false
+        description: contraindication_egfr
+      contraindicationK:
+        type: float
+        required: false
+        description: contraindication_k
+      drugClass:
+        type: string
+        required: false
+        description: drug_class
+      sourceComment:
+        type: string
+        required: false
+        description: source_comment
+      thresholdEgfr:
+        type: int
+        required: false
+        description: threshold_egfr
+      patientId:
+        type: string
+        required: false
+        description: Simulated patient id for medication orders
+      orderStatus:
+        type: string
+        required: false
+        description: active, blocked, paused, or completed
+      dose:
+        type: string
+        required: false
+        description: Simulated medication order dose
+      orderedAt:
+        type: datetime
+        required: false
+        description: Simulated medication order timestamp
+      actionStatus:
+        type: string
+        required: false
+        description: Simulated medication action workflow status
+      actionReason:
+        type: string
+        required: false
+        description: Simulated action rationale shown in action preview
+      actionChannel:
+        type: string
+        required: false
+        description: Simulated channel used to deliver the action
+      lastAction:
+        type: string
+        required: false
+        description: Last simulated action applied to this object
+      contraindicatedForComplicationId:
+        type: string
+        required: false
+        description: Synthetic FK for relation contraindicated_for -> Complication
+          (3 source relations)
+      contraindicatedForDiseaseId:
+        type: string
+        required: false
+        description: Synthetic FK for relation contraindicated_for -> Disease (2 source
+          relations)
+      contraindicatedForDiseaseStageId:
+        type: string
+        required: false
+        description: Synthetic FK for relation contraindicated_for -> DiseaseStage
+          (3 source relations)
+    links:
+      contraindicatedForComplication:
+        target: Complication
+        foreign_key: contraindicatedForComplicationId
+      contraindicatedForDisease:
+        target: Disease
+        foreign_key: contraindicatedForDiseaseId
+      contraindicatedForDiseaseStage:
+        target: DiseaseStage
+        foreign_key: contraindicatedForDiseaseStageId
+  Formula:
+    description: 协和肾病本体建模 / Formula concepts (1 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: Formula primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      inputIndicators:
+        type: string
+        required: false
+        description: input_indicators
+      outputIndicator:
+        type: string
+        required: false
+        description: output_indicator
+      calculatesIndicatorId:
+        type: string
+        required: false
+        description: Synthetic FK for relation calculates -> Indicator (1 source relations)
+    links:
+      calculatesIndicator:
+        target: Indicator
+        foreign_key: calculatesIndicatorId
+  Guideline:
+    description: 协和肾病本体建模 / Guideline concepts (2 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: Guideline primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      version:
+        type: int
+        required: false
+        description: version
+  Indicator:
+    description: 协和肾病本体建模 / Indicator concepts (11 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: Indicator primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      calculationBasis:
+        type: string
+        required: false
+        description: calculation_basis
+      criticalValueHigh:
+        type: float
+        required: false
+        description: critical_value_high
+      extremeValueHigh:
+        type: float
+        required: false
+        description: extreme_value_high
+      formula:
+        type: string
+        required: false
+        description: formula
+      sourceField:
+        type: string
+        required: false
+        description: source_field
+      sourceTable:
+        type: string
+        required: false
+        description: source_table
+      thresholdHeavy:
+        type: float
+        required: false
+        description: threshold_heavy
+      thresholdHigh:
+        type: float
+        required: false
+        description: threshold_high
+      thresholdLow:
+        type: float
+        required: false
+        description: threshold_low
+      thresholdTarget:
+        type: float
+        required: false
+        description: threshold_target
+      unit:
+        type: string
+        required: false
+        description: unit
+      patientId:
+        type: string
+        required: false
+        description: Simulated patient id for patient-level clinical observations
+      value:
+        type: float
+        required: false
+        description: Simulated numeric observation value
+      observedAt:
+        type: datetime
+        required: false
+        description: Simulated observation timestamp
+      sourceSystem:
+        type: string
+        required: false
+        description: Source system for simulated clinical observation
+      status:
+        type: string
+        required: false
+        description: Observation status or clinical interpretation
+      alertLevel:
+        type: string
+        required: false
+        description: Simulated alert level for critical observation actions
+      actionStatus:
+        type: string
+        required: false
+        description: Simulated observation action workflow status
+      notificationStatus:
+        type: string
+        required: false
+        description: Simulated notification acknowledgement status
+      actionReason:
+        type: string
+        required: false
+        description: Simulated action rationale shown in action preview
+      actionChannel:
+        type: string
+        required: false
+        description: Simulated channel used to deliver the action
+      lastAction:
+        type: string
+        required: false
+        description: Last simulated action applied to this object
+      derivesFromIndicatorId:
+        type: string
+        required: false
+        description: Synthetic FK for relation derives_from -> Indicator (1 source
+          relations)
+      diagnosedByDiseaseId:
+        type: string
+        required: false
+        description: Synthetic FK for relation diagnosed_by -> Disease (1 source relations)
+      diagnosedByDiseaseStageId:
+        type: string
+        required: false
+        description: Synthetic FK for relation diagnosed_by -> DiseaseStage (6 source
+          relations)
+      indicatesComplicationId:
+        type: string
+        required: false
+        description: Synthetic FK for relation indicates -> Complication (3 source
+          relations)
+      indicatesDiseaseId:
+        type: string
+        required: false
+        description: Synthetic FK for relation indicates -> Disease (1 source relations)
+      indicatesSymptomId:
+        type: string
+        required: false
+        description: Synthetic FK for relation indicates -> Symptom (3 source relations)
+      monitorsTreatmentId:
+        type: string
+        required: false
+        description: Synthetic FK for relation monitors -> Treatment (2 source relations)
+    links:
+      derivesFromIndicator:
+        target: Indicator
+        foreign_key: derivesFromIndicatorId
+      diagnosedByDisease:
+        target: Disease
+        foreign_key: diagnosedByDiseaseId
+      diagnosedByDiseaseStage:
+        target: DiseaseStage
+        foreign_key: diagnosedByDiseaseStageId
+      indicatesComplication:
+        target: Complication
+        foreign_key: indicatesComplicationId
+      indicatesDisease:
+        target: Disease
+        foreign_key: indicatesDiseaseId
+      indicatesSymptom:
+        target: Symptom
+        foreign_key: indicatesSymptomId
+      monitorsTreatment:
+        target: Treatment
+        foreign_key: monitorsTreatmentId
+  PatientGroup:
+    description: 协和肾病本体建模 / PatientGroup concepts (4 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: PatientGroup primary key generated from nano-ontoprompt entity
+          id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      sourceComment:
+        type: string
+        required: false
+        description: source_comment
+  Process:
+    description: 协和肾病本体建模 / Process concepts (1 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: Process primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      docSummary:
+        type: string
+        required: false
+        description: doc_summary
+      extractionMethod:
+        type: string
+        required: false
+        description: extraction_method
+      filename:
+        type: string
+        required: false
+        description: filename
+      recordId:
+        type: string
+        required: false
+        description: record_id
+      rowType:
+        type: string
+        required: false
+        description: row_type
+      sectionCount:
+        type: int
+        required: false
+        description: section_count
+      sectionIndex:
+        type: int
+        required: false
+        description: section_index
+      sectionTitle:
+        type: string
+        required: false
+        description: section_title
+      sourceFile:
+        type: string
+        required: false
+        description: source_file
+  QualityMetric:
+    description: 协和肾病本体建模 / QualityMetric concepts (3 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: QualityMetric primary key generated from nano-ontoprompt entity
+          id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      sourceRule:
+        type: string
+        required: false
+        description: source_rule
+      sourceSystem:
+        type: string
+        required: false
+        description: source_system
+      thresholdTime:
+        type: string
+        required: false
+        description: threshold_time
+      thresholdValue:
+        type: float
+        required: false
+        description: threshold_value
+      patientId:
+        type: string
+        required: false
+        description: Simulated patient id for quality metrics
+      value:
+        type: float
+        required: false
+        description: Simulated metric value
+      metricType:
+        type: string
+        required: false
+        description: Simulated metric type
+      measuredAt:
+        type: datetime
+        required: false
+        description: Simulated metric timestamp
+      qcReportStatus:
+        type: string
+        required: false
+        description: Simulated quality report workflow status
+      actionReason:
+        type: string
+        required: false
+        description: Simulated action rationale shown in action preview
+      targetSystem:
+        type: string
+        required: false
+        description: Simulated downstream system for action execution
+      lastAction:
+        type: string
+        required: false
+        description: Last simulated action applied to this object
+  RiskFactor:
+    description: 协和肾病本体建模 / RiskFactor concepts (2 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: RiskFactor primary key generated from nano-ontoprompt entity
+          id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      sourceComment:
+        type: string
+        required: false
+        description: source_comment
+  RuleConcept:
+    description: 协和肾病本体建模 / RuleConcept concepts (12 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: RuleConcept primary key generated from nano-ontoprompt entity
+          id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      guideline:
+        type: string
+        required: false
+        description: guideline
+      input:
+        type: string
+        required: false
+        description: input
+      thresholdCritical:
+        type: float
+        required: false
+        description: threshold_critical
+      thresholdCriticalK:
+        type: float
+        required: false
+        description: threshold_critical_k
+      thresholdExtreme:
+        type: float
+        required: false
+        description: threshold_extreme
+      thresholdMaxK:
+        type: float
+        required: false
+        description: threshold_max_k
+      thresholdMin:
+        type: float
+        required: false
+        description: threshold_min
+      thresholdMinEgfr:
+        type: int
+        required: false
+        description: threshold_min_egfr
+      thresholdPhosphorus:
+        type: float
+        required: false
+        description: threshold_phosphorus
+      thresholdWarning:
+        type: float
+        required: false
+        description: threshold_warning
+      timeWindow:
+        type: string
+        required: false
+        description: time_window
+      triggersActionConceptId:
+        type: string
+        required: false
+        description: Synthetic FK for relation triggers -> ActionConcept (11 source
+          relations)
+    links:
+      triggersActionConcept:
+        target: ActionConcept
+        foreign_key: triggersActionConceptId
+  Symptom:
+    description: 协和肾病本体建模 / Symptom concepts (4 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: Symptom primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      monitorIndicator:
+        type: string
+        required: false
+        description: monitor_indicator
+      sourceComment:
+        type: string
+        required: false
+        description: source_comment
+  TestItem:
+    description: 协和肾病本体建模 / TestItem concepts (6 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: TestItem primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      bodyPart:
+        type: string
+        required: false
+        description: body_part
+      includes:
+        type: string
+        required: false
+        description: includes
+      sourceSystem:
+        type: string
+        required: false
+        description: source_system
+      patientId:
+        type: string
+        required: false
+        description: Simulated patient id for ordered or completed tests
+      orderStatus:
+        type: string
+        required: false
+        description: not_ordered, ordered, completed, or overdue
+      orderedAt:
+        type: datetime
+        required: false
+        description: Simulated test order timestamp
+      completedAt:
+        type: datetime
+        required: false
+        description: Simulated test completion timestamp
+      hasBodyPartBodyPartId:
+        type: string
+        required: false
+        description: Synthetic FK for relation has_body_part -> BodyPart (3 source
+          relations)
+    links:
+      hasBodyPartBodyPart:
+        target: BodyPart
+        foreign_key: hasBodyPartBodyPartId
+  Treatment:
+    description: 协和肾病本体建模 / Treatment concepts (5 items in source ontology)
+    properties:
+      id:
+        type: string
+        required: true
+        primary_key: true
+        description: Treatment primary key generated from nano-ontoprompt entity id
+      name:
+        type: string
+        required: true
+        description: Display name
+      nameCn:
+        type: string
+        required: false
+        description: Chinese concept name
+      nameEn:
+        type: string
+        required: false
+        description: English concept name
+      description:
+        type: string
+        required: false
+        description: Concept description
+      confidence:
+        type: float
+        required: false
+        description: Extraction confidence
+      examples:
+        type: string
+        required: false
+        description: examples
+      sourceComment:
+        type: string
+        required: false
+        description: source_comment
+      hasDepartmentDepartmentId:
+        type: string
+        required: false
+        description: Synthetic FK for relation has_department -> Department (2 source
+          relations)
+    links:
+      hasDepartmentDepartment:
+        target: Department
+        foreign_key: hasDepartmentDepartmentId
+actions:
+  aRBACEIHyperkalemiaBlock:
+    description: 防止高钾患者使用升高血钾的降压药
+    params:
+      id:
+        type: string
+        required: true
+      note:
+        type: string
+        required: false
+    target_type: Drug
+    edits:
+    - set:
+        orderStatus: blocked
+        actionStatus: blocked_by_hyperkalemia_rule
+        actionReason: '{note}'
+        actionChannel: CDS prescription interceptor
+        lastAction: aRBACEIHyperkalemiaBlock
+    requires_confirmation: true
+  cKD4ImagingAssessmentReminder:
+    description: 确保 CKD 4 期患者及时完成透析前评估
+    params:
+      id:
+        type: string
+        required: true
+      note:
+        type: string
+        required: false
+    target_type: DiseaseStage
+    edits:
+    - set:
+        assessmentStatus: overdue_requires_imaging
+        reminderStatus: pending_physician_ack
+        actionReason: '{note}'
+        actionChannel: EMR admission checklist
+        lastAction: cKD4ImagingAssessmentReminder
+    requires_confirmation: true
+  metforminPrescriptionBlock:
+    description: 防止肾功能不全患者使用禁忌药物
+    params:
+      id:
+        type: string
+        required: true
+      note:
+        type: string
+        required: false
+    target_type: Drug
+    edits:
+    - set:
+        orderStatus: blocked
+        actionStatus: blocked_by_egfr_rule
+        actionReason: '{note}'
+        actionChannel: CDS prescription interceptor
+        lastAction: metforminPrescriptionBlock
+    requires_confirmation: true
+  researchCohortDataExtraction:
+    description: 支持临床科研的一键式数据提取
+    params:
+      id:
+        type: string
+        required: true
+      note:
+        type: string
+        required: false
+    target_type: CohortCriteria
+    edits:
+    - set:
+        extractionStatus: pending_export
+        actionReason: '{note}'
+        targetSystem: research data mart
+        lastAction: researchCohortDataExtraction
+    requires_confirmation: true
+  dialysisMonthlyReviewQCReport:
+    description: 监控透析患者的定期随访依从性
+    params:
+      id:
+        type: string
+        required: true
+      note:
+        type: string
+        required: false
+    target_type: QualityMetric
+    edits:
+    - set:
+        qcReportStatus: pending_submit
+        actionReason: '{note}'
+        targetSystem: quality control system
+        lastAction: dialysisMonthlyReviewQCReport
+    requires_confirmation: true
+  hyperkalemiaCriticalAlert:
+    description: 实时监测血钾，触发分级预警以确保护理和医师及时知晓
+    params:
+      id:
+        type: string
+        required: true
+      note:
+        type: string
+        required: false
+    target_type: Indicator
+    edits:
+    - set:
+        alertLevel: critical
+        actionStatus: alert_pending_ack
+        notificationStatus: pending_physician_and_nurse_ack
+        actionReason: '{note}'
+        actionChannel: LIS critical value alert
+        lastAction: hyperkalemiaCriticalAlert
+    requires_confirmation: true
+functions:
+  aKIStage1DiagnosisRule:
+    description: 依据 KDIGO 标准，检测肌酐急性升高以诊断 AKI
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: aKIStage1DiagnosisRule
+  aRBACEISafetyRule:
+    description: 高钾或肾动脉狭窄时，拦截 RASi 类药物
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: aRBACEISafetyRule
+  cKDStagingRule:
+    description: 依据 KDIGO 指南，根据 eGFR 数值自动判定 CKD 分期
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: cKDStagingRule
+  cKDMBDWarningRule:
+    description: 监测钙、磷、PTH 指标，预警矿物质骨代谢紊乱
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: cKDMBDWarningRule
+  cKD4AdmissionMandatoryAssessmentRule:
+    description: CKD 4 期患者入院后需在规定时间内完成特定影像评估
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: cKD4AdmissionMandatoryAssessmentRule
+  sGLT2iUsageRule:
+    description: 依据 eGFR 决定 SGLT2i 的使用资格
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: sGLT2iUsageRule
+  metforminSafetyRule:
+    description: 依据 2026 指南，根据 eGFR 调整或禁用二甲双胍
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: metforminSafetyRule
+  proteinuriaStratificationRule:
+    description: 依据指南，根据 UACR 或 24h 尿蛋白判定蛋白尿严重程度
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: proteinuriaStratificationRule
+  dialysisAdequacyQCRule:
+    description: 监控透析充分性指标，确保治疗达标
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: dialysisAdequacyQCRule
+  dialysisMonthlyReviewQCRule:
+    description: 确保透析患者定期复查关键指标
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: dialysisMonthlyReviewQCRule
+  finerenoneUsageRule:
+    description: 基于糖尿病肾病、蛋白尿和血钾水平管理非奈利酮
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: finerenoneUsageRule
+  hyperkalemiaCriticalValueRule:
+    description: 监测血钾水平，触发不同等级的危急值预警
+    params:
+      objectType:
+        type: string
+        required: false
+      objectId:
+        type: string
+        required: false
+    returns: rule_evaluation_result
+    permission: hyperkalemiaCriticalValueRule

@@ -29,7 +29,7 @@ class ActionExecutor:
         self._validate_params(action, params)
         requires_confirmation = self._governance.get_action_confirmation(role, action_name)
 
-        target_id = params.get("shipmentId") or params.get("caseId", "unknown")
+        target_id = self._resolve_target_id(params) or "unknown"
         target = f"{action.target_type}:{target_id}"
 
         changes = self._compute_changes(action, params)

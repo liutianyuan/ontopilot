@@ -1,0 +1,824 @@
+# Simulated seed data for xiehe nephrology ontology.
+# Concept layer follows the nano-ontoprompt Neo4j graph shape: 23 object types,
+# 110 source concepts, 70 relations. Patient-level facts are intentionally
+# simulated and attached to existing types through patientId.
+
+Department:
+  - id: dept_nephrology
+    name: 肾内科
+    nameCn: 肾内科
+    nameEn: Nephrology Department
+    description: 协和肾病专科诊疗主责科室
+    confidence: 0.98
+  - id: dept_dialysis
+    name: 透析中心
+    nameCn: 透析中心
+    nameEn: Dialysis Center
+    description: 血液透析与腹膜透析管理
+    confidence: 0.95
+  - id: dept_lab
+    name: 检验科
+    nameCn: 检验科
+    nameEn: Laboratory Department
+    sourceSystem: LIS
+    confidence: 0.9
+  - id: dept_transplant
+    name: 移植中心
+    nameCn: 移植中心
+    nameEn: Transplant Center
+    confidence: 0.95
+
+BodyPart:
+  - id: body_kidney
+    name: 肾脏
+    nameCn: 肾脏
+    nameEn: Kidney
+    confidence: 0.98
+  - id: body_heart
+    name: 心脏
+    nameCn: 心脏
+    nameEn: Heart
+    confidence: 0.98
+  - id: body_renal_artery
+    name: 肾动脉
+    nameCn: 肾动脉
+    nameEn: Renal Artery
+    confidence: 0.9
+
+Disease:
+  - id: disease_ckd
+    name: 慢性肾脏病
+    nameCn: 慢性肾脏病
+    nameEn: Chronic Kidney Disease
+    aliases: CKD
+    guideline: KDIGO 2024; 中国 CKD 诊疗指南 2026
+    hasDepartmentDepartmentId: dept_nephrology
+    confidence: 0.98
+  - id: disease_aki
+    name: 急性肾损伤
+    nameCn: 急性肾损伤
+    nameEn: Acute Kidney Injury
+    aliases: AKI
+    guideline: KDIGO AKI
+    confidence: 0.98
+  - id: disease_diabetic_nephropathy
+    name: 糖尿病肾病
+    nameCn: 糖尿病肾病
+    nameEn: Diabetic Nephropathy
+    hasCauseRiskFactorId: risk_diabetes
+    confidence: 0.98
+  - id: disease_renal_artery_stenosis
+    name: 肾动脉狭窄
+    nameCn: 肾动脉狭窄
+    nameEn: Renal Artery Stenosis
+    description: ACEI/ARB 禁忌风险疾病
+    confidence: 0.95
+  - id: disease_lupus_nephritis
+    name: 狼疮性肾炎
+    nameCn: 狼疮性肾炎
+    nameEn: Lupus Nephritis
+    researchExclusion: true
+    confidence: 0.95
+  - id: dx_p_ckd_042_dn
+    name: P-CKD-042 糖尿病肾病
+    nameCn: 糖尿病肾病
+    nameEn: Diabetic Nephropathy
+    patientId: P-CKD-042
+    diagnosisStatus: active
+    confidence: 1.0
+  - id: dx_p_ckd_042_ckd
+    name: P-CKD-042 慢性肾脏病
+    nameCn: 慢性肾脏病
+    nameEn: Chronic Kidney Disease
+    patientId: P-CKD-042
+    diagnosisStatus: active
+    confidence: 1.0
+  - id: dx_p_dial_009_ckd
+    name: P-DIAL-009 终末期肾病
+    nameCn: 慢性肾脏病
+    nameEn: Chronic Kidney Disease
+    patientId: P-DIAL-009
+    diagnosisStatus: active
+    confidence: 1.0
+
+DiseaseStage:
+  - id: stage_ckd_g1
+    name: CKD G1期
+    nameCn: CKD G1期
+    nameEn: CKD Stage G1
+    threshold: eGFR >= 90
+    confidence: 0.98
+  - id: stage_ckd_g2
+    name: CKD G2期
+    nameCn: CKD G2期
+    nameEn: CKD Stage G2
+    threshold: 60 <= eGFR < 90
+    confidence: 0.98
+  - id: stage_ckd_g3a
+    name: CKD G3a期
+    nameCn: CKD G3a期
+    nameEn: CKD Stage G3a
+    threshold: 45 <= eGFR < 60
+    confidence: 0.98
+  - id: stage_ckd_g3b
+    name: CKD G3b期
+    nameCn: CKD G3b期
+    nameEn: CKD Stage G3b
+    threshold: 30 <= eGFR < 45
+    confidence: 0.98
+  - id: stage_ckd_g4
+    name: CKD G4期
+    nameCn: CKD G4期
+    nameEn: CKD Stage G4
+    threshold: 15 <= eGFR < 30
+    actionRequirement: 24h 内完善肾动态显像、心脏超声、透析方式评估
+    confidence: 0.98
+  - id: stage_ckd_g5
+    name: CKD G5期
+    nameCn: CKD G5期
+    nameEn: CKD Stage G5
+    threshold: eGFR < 15
+    actionRequirement: 启动替代治疗或透析评估
+    confidence: 0.98
+  - id: stage_aki_1
+    name: AKI 1期
+    nameCn: AKI 1期
+    nameEn: AKI Stage 1
+    triggerCondition: Scr 48h delta >= 26.5 umol/L
+    confidence: 0.9
+  - id: stage_p_ckd_042_g4
+    name: P-CKD-042 CKD G4
+    nameCn: CKD G4期
+    nameEn: CKD Stage G4
+    patientId: P-CKD-042
+    stageStatus: current
+    threshold: 15 <= eGFR < 30
+    actionRequirement: 24h 内完善肾动态显像和心脏超声
+    assessmentStatus: overdue_unhandled
+    reminderStatus: not_sent
+    actionReason: null
+    actionChannel: null
+    lastAction: null
+  - id: stage_p_dial_009_g5
+    name: P-DIAL-009 CKD G5
+    nameCn: CKD G5期
+    nameEn: CKD Stage G5
+    patientId: P-DIAL-009
+    stageStatus: current
+    threshold: eGFR < 15
+
+Indicator:
+  - id: ind_egfr
+    name: eGFR
+    nameCn: 估算肾小球滤过率
+    nameEn: eGFR
+    unit: ml/min/1.73m2
+    sourceSystem: CDR
+    diagnosedByDiseaseStageId: stage_ckd_g4
+    confidence: 0.98
+  - id: ind_scr
+    name: Scr
+    nameCn: 血清肌酐
+    nameEn: Serum Creatinine
+    unit: umol/L
+    sourceSystem: LIS
+    confidence: 0.98
+  - id: ind_k
+    name: 血钾
+    nameCn: 血钾
+    nameEn: Potassium
+    unit: mmol/L
+    sourceSystem: LIS
+    criticalValueHigh: 5.5
+    extremeValueHigh: 6.5
+    indicatesComplicationId: comp_hyperkalemia
+    confidence: 0.98
+  - id: ind_uacr
+    name: UACR
+    nameCn: 尿白蛋白肌酐比
+    nameEn: UACR
+    unit: mg/g
+    thresholdHeavy: 300
+    indicatesSymptomId: sym_proteinuria
+  - id: ind_urine_protein_24h
+    name: 24h尿蛋白
+    nameCn: 24h尿蛋白
+    nameEn: 24h Urine Protein
+    unit: g/day
+    thresholdHeavy: 3
+    indicatesSymptomId: sym_proteinuria
+  - id: ind_phosphorus
+    name: 血磷
+    nameCn: 血磷
+    nameEn: Phosphorus
+    unit: mmol/L
+    thresholdHigh: 1.78
+    indicatesComplicationId: comp_ckd_mbd
+  - id: ind_pth
+    name: PTH
+    nameCn: 甲状旁腺激素
+    nameEn: PTH
+    unit: pg/ml
+    thresholdHigh: 600
+    indicatesComplicationId: comp_ckd_mbd
+  - id: ind_hb
+    name: Hb
+    nameCn: 血红蛋白
+    nameEn: Hemoglobin
+    unit: g/L
+    thresholdLow: 110
+    indicatesComplicationId: comp_renal_anemia
+  - id: ind_ktv
+    name: Kt/V
+    nameCn: 透析充分性 Kt/V
+    nameEn: Kt/V
+    thresholdTarget: 1.2
+    monitorsTreatmentId: treatment_hemodialysis
+  - id: ind_scr_delta
+    name: ScrDelta48h
+    nameCn: 48小时肌酐升高值
+    nameEn: Scr 48h Delta
+    unit: umol/L
+  - id: obs_p_ckd_042_egfr
+    name: eGFR
+    nameCn: 估算肾小球滤过率
+    nameEn: eGFR
+    patientId: P-CKD-042
+    value: 15
+    unit: ml/min/1.73m2
+    observedAt: '2026-08-06T09:10:00+08:00'
+    sourceSystem: CDR
+    status: CKD G4 边界值
+  - id: obs_p_ckd_042_scr
+    name: Scr
+    nameCn: 血清肌酐
+    nameEn: Serum Creatinine
+    patientId: P-CKD-042
+    value: 438
+    unit: umol/L
+    observedAt: '2026-08-06T09:10:00+08:00'
+    sourceSystem: LIS
+  - id: obs_p_ckd_042_k
+    name: 血钾
+    nameCn: 血钾
+    nameEn: Potassium
+    patientId: P-CKD-042
+    value: 5.9
+    unit: mmol/L
+    observedAt: '2026-08-06T09:15:00+08:00'
+    sourceSystem: LIS
+    status: 高钾危急值
+    alertLevel: none
+    actionStatus: not_alerted
+    notificationStatus: not_sent
+    actionReason: null
+    actionChannel: null
+    lastAction: null
+  - id: obs_p_ckd_042_uacr
+    name: UACR
+    nameCn: 尿白蛋白肌酐比
+    nameEn: UACR
+    patientId: P-CKD-042
+    value: 520
+    unit: mg/g
+    observedAt: '2026-08-05T15:20:00+08:00'
+    sourceSystem: LIS
+  - id: obs_p_ckd_042_24h_protein
+    name: 24h尿蛋白
+    nameCn: 24h尿蛋白
+    nameEn: 24h Urine Protein
+    patientId: P-CKD-042
+    value: 3.2
+    unit: g/day
+    observedAt: '2026-08-05T15:20:00+08:00'
+    sourceSystem: LIS
+  - id: obs_p_ckd_042_phosphorus
+    name: 血磷
+    nameCn: 血磷
+    nameEn: Phosphorus
+    patientId: P-CKD-042
+    value: 2.1
+    unit: mmol/L
+    sourceSystem: LIS
+  - id: obs_p_ckd_042_pth
+    name: PTH
+    nameCn: 甲状旁腺激素
+    nameEn: PTH
+    patientId: P-CKD-042
+    value: 720
+    unit: pg/ml
+    sourceSystem: LIS
+  - id: obs_p_ckd_042_hb
+    name: Hb
+    nameCn: 血红蛋白
+    nameEn: Hemoglobin
+    patientId: P-CKD-042
+    value: 98
+    unit: g/L
+    sourceSystem: LIS
+  - id: obs_p_aki_017_scr_delta
+    name: ScrDelta48h
+    nameCn: 48小时肌酐升高值
+    nameEn: Scr 48h Delta
+    patientId: P-AKI-017
+    value: 32
+    unit: umol/L
+    sourceSystem: LIS
+    status: AKI 1期触发
+  - id: obs_p_aki_017_egfr
+    name: eGFR
+    nameCn: 估算肾小球滤过率
+    nameEn: eGFR
+    patientId: P-AKI-017
+    value: 62
+    unit: ml/min/1.73m2
+    sourceSystem: CDR
+  - id: obs_p_dial_009_egfr
+    name: eGFR
+    nameCn: 估算肾小球滤过率
+    nameEn: eGFR
+    patientId: P-DIAL-009
+    value: 10
+    unit: ml/min/1.73m2
+    sourceSystem: CDR
+  - id: obs_p_dial_009_ktv
+    name: Kt/V
+    nameCn: 透析充分性 Kt/V
+    nameEn: Kt/V
+    patientId: P-DIAL-009
+    value: 1.05
+    unit: ratio
+    sourceSystem: 透析管理系统
+    status: 未达标
+
+Drug:
+  - id: drug_metformin
+    name: 二甲双胍
+    nameCn: 二甲双胍
+    nameEn: Metformin
+    drugClass: 双胍类降糖药
+    contraindicationEgfr: 30
+    contraindicatedForDiseaseStageId: stage_ckd_g4
+    confidence: 0.98
+  - id: drug_irbesartan
+    name: 厄贝沙坦
+    nameCn: 厄贝沙坦
+    nameEn: Irbesartan
+    drugClass: ARB
+    contraindicationK: 5.5
+    contraindicatedForComplicationId: comp_hyperkalemia
+    confidence: 0.98
+  - id: drug_dapagliflozin
+    name: 达格列净
+    nameCn: 达格列净
+    nameEn: Dapagliflozin
+    drugClass: SGLT2i
+    thresholdEgfr: 20
+  - id: drug_finerenone
+    name: 非奈利酮
+    nameCn: 非奈利酮
+    nameEn: Finerenone
+    drugClass: nsMRA
+    contraindicationK: 5.4
+  - id: order_p_ckd_042_metformin
+    name: 二甲双胍
+    nameCn: 二甲双胍
+    nameEn: Metformin
+    patientId: P-CKD-042
+    orderStatus: active
+    dose: 0.5g tid
+    orderedAt: '2026-08-06T10:00:00+08:00'
+    drugClass: 双胍类降糖药
+    actionStatus: not_intercepted
+    actionReason: null
+    actionChannel: null
+    lastAction: null
+  - id: order_p_ckd_042_irbesartan
+    name: 厄贝沙坦
+    nameCn: 厄贝沙坦
+    nameEn: Irbesartan
+    patientId: P-CKD-042
+    orderStatus: active
+    dose: 150mg qd
+    orderedAt: '2026-08-06T10:05:00+08:00'
+    drugClass: ARB
+    actionStatus: not_intercepted
+    actionReason: null
+    actionChannel: null
+    lastAction: null
+
+TestItem:
+  - id: test_renal_function
+    name: 肾功能
+    nameCn: 肾功能
+    nameEn: Renal Function Panel
+    includes: Scr, eGFR, BUN, UA, CysC
+    sourceSystem: LIS
+  - id: test_renal_dynamic
+    name: 肾动态显像
+    nameCn: 肾动态显像
+    nameEn: Renal Dynamic Imaging
+    bodyPart: 肾脏
+    sourceSystem: PACS
+    hasBodyPartBodyPartId: body_kidney
+  - id: test_echo
+    name: 心脏超声
+    nameCn: 心脏超声
+    nameEn: Echocardiography
+    bodyPart: 心脏
+    sourceSystem: PACS
+    hasBodyPartBodyPartId: body_heart
+  - id: test_renal_ultrasound
+    name: 肾脏超声
+    nameCn: 肾脏超声
+    nameEn: Renal Ultrasound
+    bodyPart: 肾脏
+    sourceSystem: PACS
+  - id: test_p_ckd_042_renal_dynamic
+    name: 肾动态显像
+    nameCn: 肾动态显像
+    nameEn: Renal Dynamic Imaging
+    patientId: P-CKD-042
+    orderStatus: not_ordered
+    sourceSystem: PACS
+  - id: test_p_ckd_042_echo
+    name: 心脏超声
+    nameCn: 心脏超声
+    nameEn: Echocardiography
+    patientId: P-CKD-042
+    orderStatus: not_ordered
+    sourceSystem: PACS
+
+Complication:
+  - id: comp_hyperkalemia
+    name: 高钾血症
+    nameCn: 高钾血症
+    nameEn: Hyperkalemia
+    criticalIndicator: 血钾
+    description: 血钾升高导致恶性心律失常风险
+    confidence: 0.98
+  - id: comp_ckd_mbd
+    name: CKD-MBD
+    nameCn: CKD-MBD
+    nameEn: Chronic Kidney Disease-Mineral and Bone Disorder
+    indicators: 血钙, 血磷, PTH
+    confidence: 0.98
+  - id: comp_renal_anemia
+    name: 肾性贫血
+    nameCn: 肾性贫血
+    nameEn: Renal Anemia
+    monitorIndicator: Hb
+  - id: comp_cardiovascular_events
+    name: 心血管事件
+    nameCn: 心血管事件
+    nameEn: Cardiovascular Events
+    riskFactors: eGFR<20, 大量蛋白尿
+  - id: comp_malignant_arrhythmia
+    name: 恶性心律失常
+    nameCn: 恶性心律失常
+    nameEn: Malignant Arrhythmia
+    hasComplicationComplicationId: comp_hyperkalemia
+
+Symptom:
+  - id: sym_proteinuria
+    name: 蛋白尿
+    nameCn: 蛋白尿
+    nameEn: Proteinuria
+    monitorIndicator: UACR, 24h尿蛋白
+  - id: sym_edema
+    name: 水肿
+    nameCn: 水肿
+    nameEn: Edema
+  - id: sym_hypertension
+    name: 高血压
+    nameCn: 高血压
+    nameEn: Hypertension
+  - id: sym_anemia
+    name: 贫血
+    nameCn: 贫血
+    nameEn: Anemia
+    monitorIndicator: Hb
+
+RiskFactor:
+  - id: risk_diabetes
+    name: 糖尿病
+    nameCn: 糖尿病
+    nameEn: Diabetes Mellitus
+    description: CKD 进展危险因素
+  - id: risk_nephrotoxic_drug
+    name: 肾毒性药物
+    nameCn: 肾毒性药物
+    nameEn: Nephrotoxic Drugs
+
+Treatment:
+  - id: treatment_hemodialysis
+    name: 血液透析
+    nameCn: 血液透析
+    nameEn: Hemodialysis
+    hasDepartmentDepartmentId: dept_dialysis
+  - id: treatment_peritoneal_dialysis
+    name: 腹膜透析
+    nameCn: 腹膜透析
+    nameEn: Peritoneal Dialysis
+  - id: treatment_transplant
+    name: 肾移植
+    nameCn: 肾移植
+    nameEn: Kidney Transplantation
+    hasDepartmentDepartmentId: dept_transplant
+  - id: treatment_fluid_resuscitation
+    name: 补液
+    nameCn: 补液
+    nameEn: Fluid Resuscitation
+  - id: treatment_stop_nephrotoxic
+    name: 停用肾毒性药物
+    nameCn: 停用肾毒性药物
+    nameEn: Discontinue Nephrotoxic Drugs
+
+QualityMetric:
+  - id: qm_hyperkalemia_timeliness
+    name: 高钾处置时效
+    nameCn: 高钾处置时效
+    nameEn: Hyperkalemia Management Timeliness
+    thresholdTime: 30 minutes
+    thresholdValue: 30
+  - id: qm_dialysis_ktv
+    name: 透析 Kt/V 达标率
+    nameCn: 透析 Kt/V 达标率
+    nameEn: Dialysis Kt/V Compliance Rate
+    thresholdValue: 1.2
+  - id: qm_medication_compliance
+    name: 用药规范率
+    nameCn: 用药规范率
+    nameEn: Medication Compliance Rate
+  - id: qm_p_dial_009_review_gap
+    name: 月度复查间隔
+    nameCn: 月度复查间隔
+    nameEn: Monthly Review Gap
+    patientId: P-DIAL-009
+    metricType: monthlyReviewGapDays
+    value: 46
+    thresholdValue: 30
+    measuredAt: '2026-08-06T08:00:00+08:00'
+    qcReportStatus: not_generated
+    actionReason: null
+    targetSystem: null
+    lastAction: null
+  - id: qm_p_ckd_042_admission_hours
+    name: 入院后评估计时
+    nameCn: 入院后评估计时
+    nameEn: Admission Assessment Hours
+    patientId: P-CKD-042
+    metricType: admissionHours
+    value: 26
+    thresholdValue: 24
+    measuredAt: '2026-08-06T12:00:00+08:00'
+
+RuleConcept:
+  - id: rule_ckd_staging
+    name: CKD分期规则
+    nameCn: CKD分期规则
+    nameEn: CKD Staging Rule
+    input: eGFR
+    guideline: KDIGO
+  - id: rule_hyperkalemia
+    name: 高钾危急值规则
+    nameCn: 高钾危急值规则
+    nameEn: Hyperkalemia Critical Value Rule
+    input: 血钾
+    thresholdWarning: 5.0
+    thresholdCritical: 5.5
+    thresholdExtreme: 6.5
+    triggersActionConceptId: action_popup_alert
+  - id: rule_metformin
+    name: 二甲双胍规则
+    nameCn: 二甲双胍规则
+    nameEn: Metformin Usage Rule
+    input: eGFR, Drug
+    guideline: 中国 CKD 诊疗指南 2026
+    triggersActionConceptId: action_prescription_interception
+  - id: rule_arb_acei
+    name: ARB/ACEI用药规则
+    nameCn: ARB/ACEI用药规则
+    nameEn: ARB/ACEI Usage Rule
+    input: 血钾, Renal Artery Stenosis
+    thresholdCriticalK: 5.5
+    triggersActionConceptId: action_prescription_interception
+  - id: rule_sglt2i
+    name: SGLT2i用药规则
+    nameCn: SGLT2i用药规则
+    nameEn: SGLT2i Usage Rule
+    thresholdMinEgfr: 20
+  - id: rule_finerenone
+    name: 非奈利酮规则
+    nameCn: 非奈利酮规则
+    nameEn: Finerenone Usage Rule
+    thresholdMaxK: 5.4
+  - id: rule_proteinuria
+    name: 蛋白尿分层规则
+    nameCn: 蛋白尿分层规则
+    nameEn: Proteinuria Stratification Rule
+    input: UACR, 24h Protein
+  - id: rule_ckd_mbd
+    name: CKD-MBD预警规则
+    nameCn: CKD-MBD预警规则
+    nameEn: CKD-MBD Warning Rule
+    thresholdPhosphorus: 1.78
+  - id: rule_dialysis_adequacy
+    name: 透析充分性规则
+    nameCn: 透析充分性规则
+    nameEn: Dialysis Adequacy Rule
+    thresholdMin: 1.2
+  - id: rule_monthly_review
+    name: 透析月度复查规则
+    nameCn: 透析月度复查规则
+    nameEn: Monthly Review Rule
+    timeWindow: 30 days
+  - id: rule_ckd4_assessment
+    name: CKD4入院评估规则
+    nameCn: CKD4入院评估规则
+    nameEn: CKD4 Admission Assessment Rule
+    timeWindow: 24 hours
+  - id: rule_aki
+    name: AKI诊断规则
+    nameCn: AKI诊断规则
+    nameEn: AKI Diagnosis Rule
+    input: Scr, Time Delta
+    guideline: KDIGO
+
+ActionConcept:
+  - id: action_popup_alert
+    name: 弹窗预警
+    nameCn: 弹窗预警
+    nameEn: Popup Alert
+    triggerType: Real-time
+  - id: action_prescription_interception
+    name: 处方拦截
+    nameCn: 处方拦截
+    nameEn: Prescription Interception
+    triggerType: Pre-submission
+  - id: action_auto_reminder
+    name: 自动提醒
+    nameCn: 自动提醒
+    nameEn: Automatic Reminder
+    triggerType: Time-based
+  - id: action_qc_reporting
+    name: 质控上报
+    nameCn: 质控上报
+    nameEn: Quality Control Reporting
+    targetSystem: 质控系统
+  - id: action_research_extraction
+    name: 科研取数
+    nameCn: 科研取数
+    nameEn: Research Data Extraction
+    targetSystem: 科研数据仓库
+
+DataSystem:
+  - id: system_his
+    name: HIS
+    nameCn: HIS
+    nameEn: Hospital Information System
+    role: Data Source
+    flowsToDataSystemId: system_lis
+  - id: system_lis
+    name: LIS
+    nameCn: LIS
+    nameEn: Laboratory Information System
+    role: Data Source
+    flowsToDataSystemId: system_cdr
+  - id: system_cdr
+    name: CDR
+    nameCn: CDR
+    nameEn: Clinical Data Repository
+    role: Data Storage / Integration
+    flowsToDataSystemId: system_emr
+  - id: system_emr
+    name: EMR
+    nameCn: EMR
+    nameEn: Electronic Medical Record
+    role: Data Source / Display
+  - id: system_pacs
+    name: PACS
+    nameCn: PACS
+    nameEn: Picture Archiving and Communication System
+    role: Data Source
+  - id: system_dialysis
+    name: 透析管理系统
+    nameCn: 透析管理系统
+    nameEn: Dialysis Management System
+    role: Specialized System
+  - id: system_qc
+    name: 质控系统
+    nameCn: 质控系统
+    nameEn: Quality Control System
+    role: Monitoring
+  - id: system_research
+    name: 科研数据仓库
+    nameCn: 科研数据仓库
+    nameEn: Research Data Warehouse
+    role: Research Output
+  - id: system_mobile
+    name: 移动医护APP
+    nameCn: 移动医护APP
+    nameEn: Mobile Medical APP
+    role: Notification
+
+DataField:
+  - id: field_lis_scr
+    name: LIS_Scr字段
+    nameCn: LIS_Scr字段
+    nameEn: LIS_Scr_Field
+    dataType: float
+    sourceTable: LIS_Lab_Results
+    sourceField: Scr
+    mapsToIndicatorId: ind_scr
+  - id: field_cdr_egfr
+    name: CDR_eGFR字段
+    nameCn: CDR_eGFR字段
+    nameEn: CDR_eGFR_Field
+    dataType: float
+    sourceTable: CDR_Lab_Calculated
+    sourceField: egfr
+    mapsToIndicatorId: ind_egfr
+  - id: field_emr_prescription
+    name: EMR_Prescription字段
+    nameCn: EMR_Prescription字段
+    nameEn: EMR_Prescription_Field
+    dataType: string/float
+    sourceTable: EMR_Prescription
+    sourceField: drug_name, dosage
+    mapsToDrugId: drug_metformin
+
+DataLineage:
+  - id: lineage_egfr_flow
+    name: eGFR数据血缘
+    nameCn: eGFR数据血缘
+    nameEn: Data Lineage Flow
+    source: LIS.Scr
+    target: CDR.eGFR -> EMR -> 处方拦截 -> 质控/科研
+
+Formula:
+  - id: formula_mdrd_egfr
+    name: MDRD eGFR公式
+    nameCn: MDRD eGFR公式
+    nameEn: MDRD eGFR Formula
+    inputIndicators: Scr, age, sex
+    outputIndicator: eGFR
+    calculatesIndicatorId: ind_egfr
+
+Guideline:
+  - id: guideline_kdigo
+    name: KDIGO指南
+    nameCn: KDIGO指南
+    nameEn: KDIGO Guideline
+    version: 2024
+  - id: guideline_china_ckd_2026
+    name: 中国CKD诊疗指南
+    nameCn: 中国CKD诊疗指南
+    nameEn: China CKD Clinical Practice Guideline
+    version: 2026
+
+PatientGroup:
+  - id: group_ckd
+    name: CKD患者
+    nameCn: CKD患者
+    nameEn: CKD Patients
+  - id: group_dialysis
+    name: 透析患者
+    nameCn: 透析患者
+    nameEn: Dialysis Patients
+  - id: group_diabetic_nephropathy
+    name: 糖尿病肾病患者
+    nameCn: 糖尿病肾病患者
+    nameEn: Diabetic Nephropathy Patients
+  - id: group_transplant
+    name: 肾移植患者
+    nameCn: 肾移植患者
+    nameEn: Kidney Transplant Patients
+
+CohortCriteria:
+  - id: cohort_ckd4_dialysis_risk
+    name: CKD4透析风险队列
+    nameCn: CKD4透析风险队列
+    nameEn: CKD4 Dialysis Risk Cohort Criteria
+    includeConditions: 确诊2型糖尿病肾病; eGFR<30; UACR>=300或24h尿蛋白>3g; 年龄>=18
+    excludeConditions: AKI一过性肾损伤; 狼疮性肾炎; 原发肾小球肾炎; 关键字段缺失
+    includedByDiseaseId: disease_diabetic_nephropathy
+    includedByDiseaseStageId: stage_ckd_g4
+    excludedByDiseaseId: disease_lupus_nephritis
+    extractionStatus: not_started
+    actionReason: null
+    targetSystem: null
+    lastAction: null
+
+Process:
+  - id: process_nephrology_weaving
+    name: 肾病数据知识编织流程
+    nameCn: 肾病数据知识编织流程
+    description: HIS/EMR/LIS/PACS/透析系统数据进入 CDR，触发 CKD 分期、用药拦截、危急值和质控规则。
+
+Document:
+  - id: doc_business_schema
+    name: 肾病专科数据-知识融合本体系统
+    nameCn: 肾病专科数据-知识融合本体系统
+    filename: nephrology_ontology_business_schema.md
+    sourceFile: nano-ontoprompt/test_data/医疗/nephrology_ontology_business_schema.md

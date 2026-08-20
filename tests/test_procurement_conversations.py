@@ -10,8 +10,9 @@ import time
 import urllib.request
 import urllib.error
 
-API_BASE = "http://localhost:8000/api"
+API_BASE = os.environ.get("ONTOPILOT_API_BASE", "http://localhost:8000/api")
 CONFIG_DIR = "config"
+TEST_MODEL_ID = os.environ.get("ONTOPILOT_TEST_MODEL_ID")
 
 total = 0
 passed = 0
@@ -73,8 +74,9 @@ def chat(message: str, role: str = "procurement_manager") -> dict:
         "warehouse_id": "",
         "message": message,
         "confirmed": False,
-        "model_id": "model-mqqgwumv",
     }
+    if TEST_MODEL_ID:
+        body["model_id"] = TEST_MODEL_ID
     result, status = api_post("/chat", body, timeout=600)
     result["_status"] = status
     return result
@@ -89,8 +91,9 @@ def chat_with_confirm(message: str, role: str = "procurement_manager") -> dict:
         "warehouse_id": "",
         "message": message,
         "confirmed": True,
-        "model_id": "model-mqqgwumv",
     }
+    if TEST_MODEL_ID:
+        body["model_id"] = TEST_MODEL_ID
     result, status = api_post("/chat", body, timeout=600)
     result["_status"] = status
     return result

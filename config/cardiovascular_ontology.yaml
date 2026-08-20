@@ -1,0 +1,239 @@
+# Cardiovascular Ontology — 心血管诊疗知识图谱（测试数据）
+object_types:
+
+  Patient:
+    description: 心血管患者基本信息
+    properties:
+      patientId:       { type: string, primary_key: true }
+      name:            { type: string }
+      sex:             { type: enum, values: [male, female, other] }
+      age:             { type: int }
+      region:          { type: string }
+      riskLevel:       { type: enum, values: [low, medium, high, very_high] }
+      primaryDiagnosis: { type: string }
+      attendingDoctorId: { type: string }
+    links:
+      attendedBy: { target: Clinician, foreign_key: attendingDoctorId }
+
+  Clinician:
+    description: 心血管专科医生或护理人员
+    properties:
+      clinicianId: { type: string, primary_key: true }
+      name:        { type: string }
+      title:       { type: string }
+      department:  { type: string }
+      hospitalId:  { type: string }
+    links:
+      worksAt: { target: Hospital, foreign_key: hospitalId }
+
+  Hospital:
+    description: 医疗机构或院区
+    properties:
+      hospitalId: { type: string, primary_key: true }
+      name:       { type: string }
+      region:     { type: string }
+      level:      { type: enum, values: [community, secondary, tertiary] }
+      cathLabCapacityPerDay: { type: int }
+      ccuBeds:    { type: int }
+
+  Encounter:
+    description: 门诊、急诊或住院就诊记录
+    properties:
+      encounterId: { type: string, primary_key: true }
+      patientId:   { type: string }
+      hospitalId:  { type: string }
+      encounterType: { type: enum, values: [outpatient, emergency, inpatient, follow_up] }
+      startTime:   { type: datetime }
+      status:      { type: enum, values: [scheduled, active, discharged, cancelled] }
+      chiefComplaint: { type: string }
+      triageLevel: { type: enum, values: [routine, urgent, critical] }
+    links:
+      belongsTo: { target: Patient, foreign_key: patientId }
+      locatedAt: { target: Hospital, foreign_key: hospitalId }
+
+  Diagnosis:
+    description: 诊断记录
+    properties:
+      diagnosisId: { type: string, primary_key: true }
+      patientId:   { type: string }
+      encounterId: { type: string }
+      code:         { type: string }
+      name:         { type: string }
+      severity:     { type: enum, values: [mild, moderate, severe, life_threatening] }
+      diagnosedAt:  { type: datetime }
+      active:       { type: bool }
+    links:
+      belongsTo: { target: Patient, foreign_key: patientId }
+      recordedIn: { target: Encounter, foreign_key: encounterId }
+
+  VitalSign:
+    description: 生命体征和床旁指标
+    properties:
+      vitalId:     { type: string, primary_key: true }
+      patientId:   { type: string }
+      encounterId: { type: string }
+      measuredAt:  { type: datetime }
+      systolicBP:  { type: int }
+      diastolicBP: { type: int }
+      heartRate:   { type: int }
+      spo2:        { type: int }
+      chestPainScore: { type: int }
+    links:
+      belongsTo: { target: Patient, foreign_key: patientId }
+      measuredIn: { target: Encounter, foreign_key: encounterId }
+
+  LabResult:
+    description: 心血管相关检验结果
+    properties:
+      labId:       { type: string, primary_key: true }
+      patientId:   { type: string }
+      encounterId: { type: string }
+      testName:    { type: string }
+      value:       { type: float }
+      unit:        { type: string }
+      referenceRange: { type: string }
+      abnormalFlag: { type: enum, values: [normal, high, low, critical] }
+      collectedAt: { type: datetime }
+    links:
+      belongsTo: { target: Patient, foreign_key: patientId }
+      collectedIn: { target: Encounter, foreign_key: encounterId }
+
+  ImagingStudy:
+    description: 心电图、超声心动图、冠脉CTA或造影检查
+    properties:
+      studyId:     { type: string, primary_key: true }
+      patientId:   { type: string }
+      encounterId: { type: string }
+      modality:    { type: enum, values: [ECG, echocardiography, coronary_CTA, coronary_angiography, cardiac_MRI] }
+      finding:     { type: string }
+      severity:    { type: enum, values: [normal, mild, moderate, severe, critical] }
+      performedAt: { type: datetime }
+    links:
+      belongsTo: { target: Patient, foreign_key: patientId }
+      performedIn: { target: Encounter, foreign_key: encounterId }
+
+  Medication:
+    description: 药品目录
+    properties:
+      medicationId: { type: string, primary_key: true }
+      genericName:  { type: string }
+      drugClass:    { type: enum, values: [antiplatelet, anticoagulant, statin, beta_blocker, acei_arb, nitrate, diuretic, antihypertensive] }
+      route:        { type: enum, values: [oral, iv, subcutaneous] }
+      contraindicationNotes: { type: string, nullable: true }
+
+  Prescription:
+    description: 用药医嘱
+    properties:
+      prescriptionId: { type: string, primary_key: true }
+      patientId:      { type: string }
+      encounterId:    { type: string }
+      medicationId:   { type: string }
+      dose:           { type: string }
+      frequency:      { type: string }
+      status:         { type: enum, values: [planned, active, held, stopped, completed] }
+      startTime:      { type: datetime }
+      stopReason:     { type: string, nullable: true }
+    links:
+      belongsTo: { target: Patient, foreign_key: patientId }
+      orderedIn: { target: Encounter, foreign_key: encounterId }
+      usesMedication: { target: Medication, foreign_key: medicationId }
+
+  Procedure:
+    description: 心血管介入、手术或治疗操作
+    properties:
+      procedureId: { type: string, primary_key: true }
+      patientId:   { type: string }
+      encounterId: { type: string }
+      name:         { type: string }
+      status:       { type: enum, values: [planned, in_progress, completed, cancelled] }
+      scheduledAt:  { type: datetime }
+      performedAt:  { type: datetime, nullable: true }
+      priority:     { type: enum, values: [elective, urgent, emergent] }
+      outcome:      { type: string, nullable: true }
+    links:
+      belongsTo: { target: Patient, foreign_key: patientId }
+      performedIn: { target: Encounter, foreign_key: encounterId }
+
+  CarePlan:
+    description: 诊疗和随访计划
+    properties:
+      planId:      { type: string, primary_key: true }
+      patientId:   { type: string }
+      encounterId: { type: string }
+      goal:        { type: string }
+      riskCategory: { type: enum, values: [low, medium, high, very_high] }
+      status:      { type: enum, values: [draft, active, completed, cancelled] }
+      ownerId:     { type: string }
+      nextReviewAt: { type: datetime }
+    links:
+      belongsTo: { target: Patient, foreign_key: patientId }
+      basedOn: { target: Encounter, foreign_key: encounterId }
+      ownedBy: { target: Clinician, foreign_key: ownerId }
+
+  Alert:
+    description: 临床预警或待处理事项
+    properties:
+      alertId:     { type: string, primary_key: true }
+      patientId:   { type: string }
+      encounterId: { type: string }
+      alertType:   { type: enum, values: [chest_pain, arrhythmia, hypertension, lab_critical, medication_safety, follow_up_overdue] }
+      severity:    { type: enum, values: [low, medium, high, critical] }
+      message:     { type: string }
+      status:      { type: enum, values: [open, acknowledged, resolved] }
+      createdBy:   { type: string }
+      createdAt:   { type: datetime }
+    links:
+      belongsTo: { target: Patient, foreign_key: patientId }
+      raisedIn: { target: Encounter, foreign_key: encounterId }
+
+actions:
+
+  updateEncounterStatus:
+    description: "更新就诊记录状态"
+    params:
+      id:          { type: string, required: true }
+      newStatus:   { type: enum, values: [scheduled, active, discharged, cancelled], required: true }
+      reason:      { type: string, required: true }
+    target_type: Encounter
+    edits: { status: newStatus }
+    requires_confirmation: false
+
+  updatePrescriptionStatus:
+    description: "调整用药医嘱状态"
+    params:
+      id:             { type: string, required: true }
+      newStatus:      { type: enum, values: [planned, active, held, stopped, completed], required: true }
+      stopReason:     { type: string, required: false }
+    target_type: Prescription
+    edits: { status: newStatus, stopReason: stopReason }
+    requires_confirmation: true
+
+  scheduleProcedure:
+    description: "更新治疗操作的计划时间和优先级"
+    params:
+      id:          { type: string, required: true }
+      scheduledAt: { type: datetime, required: true }
+      priority:    { type: enum, values: [elective, urgent, emergent], required: true }
+      newStatus:   { type: enum, values: [planned, in_progress, completed, cancelled], required: true }
+    target_type: Procedure
+    edits: { scheduledAt: scheduledAt, priority: priority, status: newStatus }
+    requires_confirmation: true
+
+  updateCarePlanReview:
+    description: "更新诊疗计划复查时间"
+    params:
+      id:           { type: string, required: true }
+      nextReviewAt: { type: datetime, required: true }
+    target_type: CarePlan
+    edits: { nextReviewAt: nextReviewAt }
+    requires_confirmation: false
+
+  resolveAlert:
+    description: "关闭临床预警"
+    params:
+      id:        { type: string, required: true }
+      newStatus: { type: enum, values: [acknowledged, resolved], required: true }
+      reason:    { type: string, required: true }
+    target_type: Alert
+    edits: { status: newStatus }
+    requires_confirmation: true

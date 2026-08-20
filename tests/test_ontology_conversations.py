@@ -11,8 +11,9 @@ import time
 import urllib.request
 import urllib.error
 
-API_BASE = "http://localhost:8000/api"
+API_BASE = os.environ.get("ONTOPILOT_API_BASE", "http://localhost:8000/api")
 CONFIG_DIR = "config"
+TEST_MODEL_ID = os.environ.get("ONTOPILOT_TEST_MODEL_ID")
 
 ONTOLOGIES = {
     "simple": {
@@ -98,8 +99,9 @@ def chat(message: str, role: str = "dispatcher") -> dict:
         "warehouse_id": "WH-SC-001",
         "message": message,
         "confirmed": False,
-        "model_id": "model-mqqgwumv",
     }
+    if TEST_MODEL_ID:
+        body["model_id"] = TEST_MODEL_ID
     result, status = api_post("/chat", body, timeout=600)
     result["_status"] = status
     return result

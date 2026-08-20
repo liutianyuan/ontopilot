@@ -145,8 +145,16 @@ async def chat(request: ChatRequest, req: Request):
     finally:
         runtime._event_callback = None
 
+    trace_events = result.get("trace_events", [])
     session_store.add_message(session_id, "human", request.message)
-    session_store.add_message(session_id, "ai", result["response"])
+    session_store.add_message(
+        session_id,
+        "ai",
+        result["response"],
+        trace_events=trace_events,
+        awaiting_confirmation=result.get("awaiting_confirmation", False),
+        turn_id=result.get("turn_id"),
+    )
     session_store.update(
         session_id,
         pending_action=result.get("pending_action"),
@@ -161,7 +169,7 @@ async def chat(request: ChatRequest, req: Request):
         turn_id=result.get("turn_id", str(uuid.uuid4())),
         awaiting_confirmation=result.get("awaiting_confirmation", False),
         pending_action=result.get("pending_action"),
-        trace_events=result.get("trace_events", []),
+        trace_events=trace_events,
     )
 
 

@@ -19,6 +19,8 @@ export interface Message {
   content: string
   timestamp: string
   awaiting_confirmation?: boolean
+  trace_events?: TraceEvent[]
+  turn_id?: string
 }
 
 export interface OntologyProperty {

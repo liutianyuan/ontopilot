@@ -57,17 +57,10 @@ Ontology YAML 文件
 ### 启动后端
 
 ```bash
-# 创建虚拟环境
-uv venv
-source .venv/bin/activate
-
-# 安装依赖
-uv sync
-
-# 启动后端
-python main.py
+./scripts/dev-api.sh
 ```
 
+该脚本会通过 `uv` 同步依赖，并执行 `uv run python main.py`。
 API 服务运行在 `http://localhost:8000`。
 
 ### 启动前端

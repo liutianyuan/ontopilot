@@ -17,12 +17,14 @@ const ACCOUNTS: { username: string; label: string; password: string; desc: strin
   { username: 'admin', label: '超级管理员', password: 'admin123', desc: '用户管理、角色权限配置' },
   { username: 'dispatcher', label: '调度员', password: 'disp123', desc: '查看货物、处理异常' },
   { username: 'manager', label: '区域经理', password: 'mgr123', desc: '查询、分析、决策' },
+  { username: 'nephro', label: '肾内科医生', password: 'nephro123', desc: '肾病规则评估、危急值和医嘱确认' },
 ]
 
 const ROLE_MAP: Record<string, { warehouse: string; userId: string }> = {
   admin: { warehouse: '', userId: 'admin_001' },
   dispatcher: { warehouse: 'WH-SC-001', userId: 'dispatcher_001' },
   regional_manager: { warehouse: 'WH-SC-001', userId: 'manager_001' },
+  nephrology_doctor: { warehouse: '', userId: 'nephro_001' },
 }
 
 export function LoginPage({ onLogin }: Props) {
@@ -97,6 +99,7 @@ export function LoginPage({ onLogin }: Props) {
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium text-white ${
                     acc.username === 'admin' ? 'bg-purple-500'
                     : acc.username === 'dispatcher' ? 'bg-green-500'
+                    : acc.username === 'nephro' ? 'bg-rose-500'
                     : 'bg-blue-500'
                   }`}>
                     {acc.label.charAt(0)}

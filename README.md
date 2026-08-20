@@ -57,17 +57,10 @@ ontology YAML files
 ### Backend
 
 ```bash
-# Create virtual environment
-uv venv
-source .venv/bin/activate
-
-# Install dependencies
-uv sync
-
-# Run the backend
-python main.py
+./scripts/dev-api.sh
 ```
 
+This script syncs dependencies with `uv` and runs `uv run python main.py`.
 The API server starts at `http://localhost:8000`.
 
 ### Frontend

@@ -1,0 +1,68 @@
+# Context sources for cardiovascular test — 心血管诊疗测试上下文
+context_sources:
+  - type: fixed_objects
+    object_type: Hospital
+    variable: bound_warehouse_id
+    properties:
+      - hospitalId
+      - name
+      - region
+      - level
+      - cathLabCapacityPerDay
+      - ccuBeds
+
+  - type: scoped_query
+    object_type: Encounter
+    filters:
+      hospitalId: "${session.bound_warehouse_id}"
+      status: [scheduled, active]
+    properties:
+      - encounterId
+      - patientId
+      - encounterType
+      - startTime
+      - status
+      - chiefComplaint
+      - triageLevel
+    max_objects: 20
+
+  - type: scoped_query
+    object_type: Patient
+    properties:
+      - patientId
+      - name
+      - sex
+      - age
+      - region
+      - riskLevel
+      - primaryDiagnosis
+      - attendingDoctorId
+    max_objects: 20
+
+  - type: scoped_query
+    object_type: Alert
+    filters:
+      status: [open, acknowledged]
+    properties:
+      - alertId
+      - patientId
+      - encounterId
+      - alertType
+      - severity
+      - message
+      - status
+    max_objects: 20
+
+  - type: scoped_query
+    object_type: Procedure
+    filters:
+      status: [planned, in_progress]
+    properties:
+      - procedureId
+      - patientId
+      - encounterId
+      - name
+      - status
+      - scheduledAt
+      - priority
+    max_objects: 20

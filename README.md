@@ -61,7 +61,7 @@ ontology YAML files
 ```
 
 This script syncs dependencies with `uv` and runs `uv run python main.py`.
-The API server starts at `http://localhost:8000`.
+The API server starts at `http://localhost:8100`.
 
 ### Frontend
 
@@ -72,6 +72,33 @@ npm run dev
 ```
 
 The dev server starts at `http://localhost:5174` with Vite proxy to the backend.
+
+## Ubuntu Production Deployment
+
+The deployment uses systemd for the FastAPI service and Nginx for the built frontend and `/api` reverse proxy. On Ubuntu 22.04/24.04:
+
+```bash
+git clone <repository-url> ontopilot
+cd ontopilot
+cp .env.example .env
+cp config/settings.yaml.example config/settings.yaml
+nano .env
+chmod +x scripts/deploy-ubuntu.sh
+./scripts/deploy-ubuntu.sh
+```
+
+Open `http://<server-ip>` after deployment. The script installs Node.js 20, uv, and Nginx when needed, then installs dependencies, builds the frontend, and creates the services. It preserves existing `.env` and `config/settings.yaml` files and can be rerun after an update.
+
+Useful commands:
+
+```bash
+sudo systemctl status ontopilot
+sudo journalctl -u ontopilot -f
+sudo systemctl restart ontopilot
+sudo nginx -t
+```
+
+See [中文部署说明](README.zh-CN.md#ubuntu-生产部署) for separate frontend/backend commands and firewall setup.
 
 ## Examples
 

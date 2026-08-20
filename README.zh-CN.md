@@ -61,7 +61,7 @@ Ontology YAML 文件
 ```
 
 该脚本会通过 `uv` 同步依赖，并执行 `uv run python main.py`。
-API 服务运行在 `http://localhost:8000`。
+API 服务运行在 `http://localhost:8100`。
 
 ### 启动前端
 
@@ -72,6 +72,70 @@ npm run dev
 ```
 
 开发服务器运行在 `http://localhost:5174`（通过 Vite 代理转发到后端）。
+
+## Ubuntu 生产部署
+
+推荐使用 **systemd + Nginx**：systemd 在 `127.0.0.1:8100` 常驻运行 FastAPI，Nginx 托管前端静态文件并将 `/api` 反向代理至后端。支持 Ubuntu 22.04/24.04。
+
+### 一键部署
+
+先将项目克隆到服务器，并填写模型密钥：
+
+```bash
+git clone <仓库地址> ontopilot
+cd ontopilot
+cp .env.example .env
+cp config/settings.yaml.example config/settings.yaml
+nano .env
+```
+
+运行部署脚本（会安装 Node.js 20、uv、Nginx，构建前端并创建 systemd 服务）：
+
+```bash
+chmod +x scripts/deploy-ubuntu.sh
+./scripts/deploy-ubuntu.sh
+```
+
+部署完成后访问 `http://<服务器 IP>`。若服务器启用了 UFW，放行 HTTP：
+
+```bash
+sudo ufw allow 'Nginx Full'
+```
+
+### 分步部署命令
+
+后端：
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source "$HOME/.local/bin/env"
+cp -n .env.example .env
+cp -n config/settings.yaml.example config/settings.yaml
+uv sync --frozen --no-dev
+RELOAD=0 HOST=127.0.0.1 PORT=8100 uv run python main.py
+```
+
+前端：
+
+```bash
+cd frontend
+npm ci
+npm run build
+sudo mkdir -p /var/www/ontopilot
+sudo cp -R dist/. /var/www/ontopilot/
+sudo chown -R www-data:www-data /var/www/ontopilot
+```
+
+生产环境请使用脚本生成的 systemd 与 Nginx 配置，而不是让上述后端命令占用终端。常用运维命令：
+
+```bash
+sudo systemctl status ontopilot
+sudo journalctl -u ontopilot -f
+sudo systemctl restart ontopilot
+sudo nginx -t
+```
+
+更新版本后，在项目目录重新执行 `./scripts/deploy-ubuntu.sh` 即可重新安装依赖、构建前端并重启服务。脚本不会覆盖已有的 `.env` 和 `config/settings.yaml`。
 
 ## 示例
 

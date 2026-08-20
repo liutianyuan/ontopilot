@@ -73,6 +73,17 @@ npm run dev
 
 The dev server starts at `http://localhost:5174` with Vite proxy to the backend.
 
+### Default Login Accounts
+
+| Role | Username | Password |
+|------|----------|----------|
+| Administrator | `admin` | `admin123` |
+| Dispatcher | `dispatcher` | `disp123` |
+| Regional manager | `manager` | `mgr123` |
+| Nephrology doctor | `nephro` | `nephro123` |
+
+Change the default passwords through the administrator account after production deployment.
+
 ## Ubuntu Production Deployment
 
 The deployment uses systemd for the FastAPI service and Nginx for the built frontend and `/api` reverse proxy. On Ubuntu 22.04/24.04:

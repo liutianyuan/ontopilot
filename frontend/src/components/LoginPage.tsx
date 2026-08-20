@@ -13,11 +13,11 @@ interface Props {
   onLogin: (user: LoginUser) => void
 }
 
-const ACCOUNTS: { username: string; label: string; password: string; desc: string }[] = [
-  { username: 'admin', label: '超级管理员', password: 'admin123', desc: '用户管理、角色权限配置' },
-  { username: 'dispatcher', label: '调度员', password: 'disp123', desc: '查看货物、处理异常' },
-  { username: 'manager', label: '区域经理', password: 'mgr123', desc: '查询、分析、决策' },
-  { username: 'nephro', label: '肾内科医生', password: 'nephro123', desc: '肾病规则评估、危急值和医嘱确认' },
+const ACCOUNTS: { username: string; label: string; desc: string }[] = [
+  { username: 'admin', label: '超级管理员', desc: '用户管理、角色权限配置' },
+  { username: 'dispatcher', label: '调度员', desc: '查看货物、处理异常' },
+  { username: 'manager', label: '区域经理', desc: '查询、分析、决策' },
+  { username: 'nephro', label: '肾内科医生', desc: '肾病规则评估、危急值和医嘱确认' },
 ]
 
 const ROLE_MAP: Record<string, { warehouse: string; userId: string }> = {
@@ -32,8 +32,6 @@ export function LoginPage({ onLogin }: Props) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const account = ACCOUNTS.find(a => a.username === selected)
 
   const handleLogin = async () => {
     if (!selected || !password) return
@@ -122,7 +120,7 @@ export function LoginPage({ onLogin }: Props) {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                placeholder={`输入密码 (${account?.password})`}
+                placeholder="输入密码"
                 className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 autoFocus
               />

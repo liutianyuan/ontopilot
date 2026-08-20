@@ -73,6 +73,17 @@ npm run dev
 
 开发服务器运行在 `http://localhost:5174`（通过 Vite 代理转发到后端）。
 
+### 默认登录账号
+
+| 角色 | 用户名 | 密码 |
+|------|--------|------|
+| 超级管理员 | `admin` | `admin123` |
+| 调度员 | `dispatcher` | `disp123` |
+| 区域经理 | `manager` | `mgr123` |
+| 肾内科医生 | `nephro` | `nephro123` |
+
+生产部署后请使用超级管理员账号及时修改默认密码。
+
 ## Ubuntu 生产部署
 
 推荐使用 **systemd + Nginx**：systemd 在 `127.0.0.1:8100` 常驻运行 FastAPI，Nginx 托管前端静态文件并将 `/api` 反向代理至后端。支持 Ubuntu 22.04/24.04。
@@ -113,6 +124,9 @@ cp -n .env.example .env
 cp -n config/settings.yaml.example config/settings.yaml
 uv sync --frozen --no-dev
 RELOAD=0 HOST=127.0.0.1 PORT=8100 uv run python main.py
+
+
+nohup env RELOAD=0 HOST=127.0.0.1 PORT=8100 uv run python main.py > ontopilot-api.log 2>&1 &
 ```
 
 前端：

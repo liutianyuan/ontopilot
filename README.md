@@ -10,10 +10,10 @@
 
 </div>
 
-<h1 align="center">OntoPilot</h1>
+<h1 align="center">基于知识编织的智能体平台</h1>
 <p align="center"><em>Ontology-powered business decision support system with LLM agent</em></p>
 
-OntoPilot is a framework for building knowledge-grounded LLM agents driven by **ontology definitions** — YAML schemas that declaratively define business object types, actions, functions, permissions, and context. The LLM agent queries, computes, simulates, and executes business operations strictly within the boundaries defined by the ontology.
+Knowledge Weaving Agent Platform is a framework for building knowledge-grounded LLM agents driven by **ontology definitions** — YAML schemas that declaratively define business object types, actions, functions, permissions, and context. The LLM agent queries, computes, simulates, and executes business operations strictly within the boundaries defined by the ontology.
 
 ---
 
@@ -113,7 +113,7 @@ See [中文部署说明](README.zh-CN.md#ubuntu-生产部署) for separate front
 
 ## Examples
 
-OntoPilot ships with **5 built-in ontologies** covering different business domains:
+The platform ships with **5 built-in ontologies** covering different business domains:
 
 | Ontology | Objects | Actions | Description |
 |----------|---------|---------|-------------|

@@ -303,7 +303,7 @@ export default function App() {
         {!showLanding && activeView === 'chat' && (
           <header className="flex items-center justify-between px-6 py-2 border-b bg-white">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-gray-700">OntoPilot</span>
+              <span className="text-sm font-semibold text-gray-700">基于知识编织的智能体平台</span>
               <span className="text-gray-300">|</span>
               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
                 {user.display_name} · {user.role === 'admin' ? '管理员' : user.role === 'regional_manager' ? '区域经理' : user.role === 'nephrology_doctor' ? '肾内科医生' : '调度员'}

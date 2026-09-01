@@ -76,6 +76,7 @@ def _resolve_ontology(app_state, ontology_id: str | None):
         permissions_path=companion("permissions.yaml"),
         context_path=companion("context.yaml"),
     )
+    app_state.runtime.nano_provider = getattr(app_state, "nano_provider", None)
     app_state.governance = PermissionEvaluator(
         companion("permissions.yaml") or os.path.join(config_dir, "permissions.yaml")
     )

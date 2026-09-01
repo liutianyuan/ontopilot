@@ -61,4 +61,39 @@ def create_tools(runtime: OntologyRuntime, user_id: str, role: str, turn_id: str
         except (KeyError, PermissionError) as e:
             return [{"status": "error", "error": str(e), "shipment_id": shipment_id}]
 
-    return [object_query, call_function, preview_action, execute_action, simulate_decisions]
+    tools = [object_query, call_function, preview_action, execute_action, simulate_decisions]
+    provider = getattr(runtime, "nano_provider", None)
+    if provider is not None:
+        @tool
+        def get_nephrology_patient(patient_id: str) -> dict:
+            """Query the live nephrology patient summary, facts, rule evaluations and alerts from nano-ontoprompt."""
+            return provider.patient_summary(patient_id)
+
+        @tool
+        def get_nephrology_timeline(patient_id: str) -> list:
+            """Query the source-event timeline for a nephrology patient from nano-ontoprompt."""
+            return provider.patient_timeline(patient_id)
+
+        @tool
+        def list_nephrology_alerts(patient_id: str = None, status: str = None) -> list:
+            """List live nephrology alerts, optionally filtered by patient and status."""
+            return provider.alerts(patient_id, status)
+
+        @tool
+        def preview_nephrology_action(alert_id: str) -> dict:
+            """Preview the recommended action for a nephrology alert and obtain a confirmation ID."""
+            return provider.preview_alert_action(alert_id)
+
+        @tool
+        def decide_nephrology_action(confirmation_id: str, approved: bool) -> dict:
+            """Approve or reject a previously previewed nephrology action."""
+            return provider.decide(confirmation_id, approved)
+
+        @tool
+        def get_nephrology_action_run(run_id: str) -> dict:
+            """Re-query a nephrology action run to verify the external writeback result."""
+            return provider.action_run(run_id)
+
+        tools.extend([get_nephrology_patient, get_nephrology_timeline, list_nephrology_alerts,
+                      preview_nephrology_action, decide_nephrology_action, get_nephrology_action_run])
+    return tools

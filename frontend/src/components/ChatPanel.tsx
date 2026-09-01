@@ -64,7 +64,7 @@ export function ChatPanel({ messages, onSend, awaitingConfirmation, loading }: P
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-medium text-gray-500 mb-1">
-                      {msg.role === 'user' ? '你' : 'OntoPilot'}
+                      {msg.role === 'user' ? '你' : '知识编织智能体'}
                     </div>
                     <div className="text-sm text-gray-800 leading-relaxed">
                       {msg.role === 'user' ? msg.content : <Markdown content={msg.content} />}
@@ -91,7 +91,7 @@ export function ChatPanel({ messages, onSend, awaitingConfirmation, loading }: P
                     O
                   </div>
                   <div className="flex-1">
-                    <div className="text-xs font-medium text-gray-500 mb-2">OntoPilot</div>
+                    <div className="text-xs font-medium text-gray-500 mb-2">知识编织智能体</div>
                     <div className="flex gap-1">
                       <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{animationDelay: '0ms'}} />
                       <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{animationDelay: '150ms'}} />

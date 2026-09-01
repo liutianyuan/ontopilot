@@ -13,9 +13,9 @@ export function WelcomePage({ onStart, onViewChange }: Props) {
         {/* Logo / Brand */}
         <div className="mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-3xl shadow-lg mb-4">
-            O
+            知
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">OntoPilot</h1>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">基于知识编织的智能体平台</h1>
           <p className="mt-3 text-lg text-gray-500 leading-relaxed">
             基于本体的智能 Agent 运行时，支持业务查询、风险分析、决策仿真与操作执行
           </p>
@@ -73,7 +73,7 @@ export function WelcomePage({ onStart, onViewChange }: Props) {
             </span>
             <div>
               <div className="font-semibold text-gray-900">使用指南</div>
-              <div className="text-sm text-gray-500 mt-0.5">了解 OntoPilot 的功能和用法</div>
+              <div className="text-sm text-gray-500 mt-0.5">了解平台的功能和用法</div>
             </div>
           </a>
         </div>

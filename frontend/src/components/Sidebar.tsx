@@ -54,8 +54,8 @@ export function Sidebar({ activeView, onViewChange, collapsed, onToggleCollapse,
   return (
     <div className={`flex flex-col bg-white border-r border-gray-200 transition-all duration-200 ${collapsed ? 'w-12' : 'w-44'}`}>
       {/* Logo area */}
-      <div className={`flex items-center border-b border-gray-200 ${collapsed ? 'justify-center h-12' : 'px-4 h-12'}`}>
-        {!collapsed && <span className="text-sm font-bold text-gray-800">OntoPilot</span>}
+      <div className={`flex items-center border-b border-gray-200 ${collapsed ? 'justify-center h-12' : 'px-4 h-14'}`}>
+        {!collapsed && <span className="text-xs leading-5 font-bold text-gray-800">基于知识编织的<br />智能体平台</span>}
       </div>
 
       {/* Nav items */}

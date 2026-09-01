@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test'
 
 /* ===========================================================
-   OntoPilot Demo E2E Tests
+   Knowledge Weaving Agent Platform Demo E2E Tests
    =========================================================== */
 
 async function loginAs(page: Page, role: string) {
@@ -42,7 +42,7 @@ test.describe('Login', () => {
 
     // After login, should see the sidebar and welcome page
     await expect(page.getByTitle('首页')).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'OntoPilot' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '基于知识编织的智能体平台' })).toBeVisible()
   })
 
   test('can login as regional manager', async ({ page }) => {
@@ -50,7 +50,7 @@ test.describe('Login', () => {
     await loginAs(page, 'manager')
 
     await expect(page.getByTitle('首页')).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'OntoPilot' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '基于知识编织的智能体平台' })).toBeVisible()
   })
 })
 
@@ -60,7 +60,7 @@ test.describe('Landing Page', () => {
     await loginAs(page, 'manager')
     await page.waitForTimeout(500)
 
-    await expect(page.getByRole('heading', { name: 'OntoPilot' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '基于知识编织的智能体平台' })).toBeVisible()
     await expect(page.getByText('基于本体的智能 Agent 运行时')).toBeVisible()
     const cards = page.locator('.grid button, .grid a')
     await expect(cards.first()).toBeVisible()
@@ -122,7 +122,7 @@ test.describe('Sidebar Navigation', () => {
     await page.waitForTimeout(300)
     await page.getByTitle('首页').click()
     await page.waitForTimeout(500)
-    await expect(page.getByRole('heading', { name: 'OntoPilot' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '基于知识编织的智能体平台' })).toBeVisible()
   })
 })
 
@@ -198,7 +198,7 @@ test.describe('Full Walkthrough', () => {
     await page.waitForTimeout(500)
 
     // ─── 1. Landing ───
-    await expect(page.getByRole('heading', { name: 'OntoPilot' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '基于知识编织的智能体平台' })).toBeVisible()
     console.log('1/5 Login & Landing OK')
 
     // ─── 2. Config ───

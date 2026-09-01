@@ -72,7 +72,7 @@ export function LoginPage({ onLogin }: Props) {
       <div className="m-auto flex flex-col items-center w-full max-w-md px-4">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-800">OntoPilot</h1>
+          <h1 className="text-3xl font-bold text-gray-800">基于知识编织的智能体平台</h1>
           <p className="text-sm text-gray-500 mt-1">基于本体的智能 Agent 运行时</p>
         </div>
 

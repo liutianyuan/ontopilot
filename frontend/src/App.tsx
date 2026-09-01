@@ -51,7 +51,10 @@ interface StoredSessionMessage {
 }
 
 export default function App() {
-  const [user, setUser] = useState<LoginUser | null>(null)
+  const [user, setUser] = useState<LoginUser | null>(() => {
+    try { return JSON.parse(localStorage.getItem('ontopilot:user') || 'null') }
+    catch { return null }
+  })
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [messages, setMessages] = useState<Message[]>([])
@@ -71,10 +74,12 @@ export default function App() {
   const showLanding = showWelcome && activeView === 'chat'
 
   const handleLogin = (loggedInUser: LoginUser) => {
+    localStorage.setItem('ontopilot:user', JSON.stringify(loggedInUser))
     setUser(loggedInUser)
   }
 
   const handleLogout = () => {
+    localStorage.removeItem('ontopilot:user')
     setUser(null)
     setSessionId(null)
     setMessages([])
@@ -83,6 +88,18 @@ export default function App() {
     setStartedChat(false)
     setShowWelcome(true)
   }
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('sso')
+    if (!token) return
+    let cancelled = false
+    fetch('/api/sso/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) })
+      .then(response => response.ok ? response.json() : Promise.reject())
+      .then(data => { if (!cancelled) handleLogin(data.user) })
+      .catch(() => {})
+      .finally(() => window.history.replaceState({}, '', window.location.pathname))
+    return () => { cancelled = true }
+  }, [])
 
   const fetchSessions = () => {
     fetch('/api/sessions').then(r => r.json()).then(data => {

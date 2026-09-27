@@ -15,6 +15,10 @@ import httpx
 from ontopilot.schema import ActionDef, FunctionDef, LinkDef, ObjectTypeDef
 
 
+class NanoTopicRequestError(RuntimeError):
+    """A user-safe error returned by Nano's published topic API."""
+
+
 class NanoTopicClient:
     def __init__(self, base_url: str, topic_id: str, token: str | None = None, client: httpx.Client | None = None):
         self.base_url = base_url.rstrip("/")
@@ -27,7 +31,12 @@ class NanoTopicClient:
 
     def request(self, method: str, path: str, **kwargs) -> Any:
         response = self.client.request(method, f"{self.base_url}{path}", headers=self._headers(), **kwargs)
-        response.raise_for_status()
+        if response.is_error:
+            try:
+                detail = response.json().get("detail")
+            except ValueError:
+                detail = None
+            raise NanoTopicRequestError(str(detail or "知识主题运行服务请求失败"))
         return response.json()["data"]
 
     def manifest(self) -> dict[str, Any]:
@@ -50,8 +59,19 @@ class NanoTopicClient:
             "entity_id": entity_id, "relation_type": relation_type, "direction": direction,
         })
 
-    def preview_action(self, alert_id: str) -> dict:
-        return self.request("POST", f"/agent-runtime/topics/{self.topic_id}/actions:preview", json={"alert_id": alert_id})
+    def preview_action(self, alert_id: str | None = None, action_name: str | None = None,
+                       patient_id: str | None = None) -> dict:
+        """Ask Nano to resolve the actionable alert from published context.
+
+        Alert UUIDs are runtime internals.  The agent can use one when it has
+        just queried an alert, but action name plus patient ID is the stable
+        interface for a natural-language request.
+        """
+        return self.request("POST", f"/agent-runtime/topics/{self.topic_id}/actions:preview", json={
+            "alert_id": alert_id,
+            "action_name": action_name,
+            "patient_id": patient_id,
+        })
 
     def commit_action(self, confirmation_id: str, approved: bool) -> dict:
         return self.request("POST", f"/agent-runtime/topics/{self.topic_id}/actions:commit", json={
@@ -209,9 +229,11 @@ class NanoActionExecutor:
 
     def preview(self, _role: str, action_name: str, params: dict) -> dict:
         alert_id = params.get("alert_id") or params.get("alertId")
-        if not alert_id:
-            return {"status": "error", "changes": [], "error": f"{action_name} requires alert_id"}
-        preview = self.client.preview_action(str(alert_id))
+        patient_id = params.get("patient_id") or params.get("patientId")
+        try:
+            preview = self.client.preview_action(str(alert_id) if alert_id else None, action_name, patient_id)
+        except NanoTopicRequestError as exc:
+            return {"status": "error", "changes": [], "error": str(exc)}
         return {"status": "pending_confirmation", "changes": [preview.get("preview", {})],
                 "confirmation_id": preview.get("confirmation_id"), "preview": preview}
 

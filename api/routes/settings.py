@@ -12,6 +12,25 @@ class SettingsUpdate(BaseModel):
     settings: dict
 
 
+@router.get("/runtime/models")
+async def runtime_models(request: Request) -> dict:
+    """Expose selectable runtime models without ever returning credentials."""
+    settings = request.app.state.settings
+    return {
+        "models": [
+            {
+                "id": item.get("id"),
+                "name": item.get("name") or item.get("model"),
+                "model": item.get("model"),
+                "provider": item.get("provider"),
+                "is_default": item.get("id") == settings.get("active_model_id"),
+            }
+            for item in settings.get("models", [])
+            if item.get("id") and item.get("model")
+        ]
+    }
+
+
 @router.get("/settings")
 async def get_settings(request: Request) -> dict:
     return load_settings(request.app.state.config_dir)

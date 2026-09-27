@@ -12,6 +12,7 @@ class ChatRequest(BaseModel):
     confirmed: bool = False
     model_id: str | None = None
     ontology_id: str | None = None
+    nano_access_token: str | None = None
 
 
 class ChatResponse(BaseModel):

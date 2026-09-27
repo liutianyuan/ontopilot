@@ -30,6 +30,9 @@ class SessionStore:
                     updated_at TEXT
                 )
             """)
+            columns = {row[1] for row in conn.execute("PRAGMA table_info(sessions)")}
+            if "topic_id" not in columns:
+                conn.execute("ALTER TABLE sessions ADD COLUMN topic_id TEXT")
 
     def _load_all(self) -> dict[str, dict]:
         with sqlite3.connect(self._db_path) as conn:
@@ -40,6 +43,7 @@ class SessionStore:
             sessions[r["id"]] = {
                 "user_id": r["user_id"],
                 "role": r["role"],
+                "topic_id": r["topic_id"],
                 "warehouse_id": r["warehouse_id"],
                 "title": r["title"],
                 "pending_action": json.loads(r["pending_action"]) if r["pending_action"] else None,
@@ -54,27 +58,29 @@ class SessionStore:
         with sqlite3.connect(self._db_path) as conn:
             conn.execute(
                 """INSERT INTO sessions
-                    (id, user_id, role, warehouse_id, title, pending_action, messages, created_at, updated_at)
-                   VALUES (?,?,?,?,?,?,?,?,?)
+                    (id, user_id, role, warehouse_id, topic_id, title, pending_action, messages, created_at, updated_at)
+                   VALUES (?,?,?,?,?,?,?,?,?,?)
                    ON CONFLICT(id) DO UPDATE SET
                     user_id=excluded.user_id, role=excluded.role, warehouse_id=excluded.warehouse_id,
+                    topic_id=excluded.topic_id,
                     title=excluded.title, pending_action=excluded.pending_action,
                     messages=excluded.messages, updated_at=excluded.updated_at""",
                 (
-                    session_id, s["user_id"], s["role"], s["warehouse_id"], s.get("title"),
+                    session_id, s["user_id"], s["role"], s["warehouse_id"], s.get("topic_id"), s.get("title"),
                     json.dumps(s["pending_action"]) if s.get("pending_action") is not None else None,
                     json.dumps(s.get("messages", [])),
                     s["created_at"], s["updated_at"],
                 ),
             )
 
-    def create_session(self, user_id: str, role: str, warehouse_id: str) -> str:
+    def create_session(self, user_id: str, role: str, warehouse_id: str, topic_id: str | None = None) -> str:
         session_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
         self._sessions[session_id] = {
             "user_id": user_id,
             "role": role,
             "warehouse_id": warehouse_id,
+            "topic_id": topic_id,
             "messages": [],
             "pending_action": None,
             "title": None,
@@ -130,10 +136,14 @@ class SessionStore:
                 msgs.append(AIMessage(content=m["content"]))
         return msgs[-20:]
 
-    def list_summaries(self) -> list[dict]:
+    def list_summaries(self, user_id: str | None = None, topic_id: str | None = None) -> list[dict]:
         """Return summary of all sessions for the session list API."""
         result = []
         for sid, s in self._sessions.items():
+            if user_id and s.get("user_id") != user_id:
+                continue
+            if topic_id and s.get("topic_id") != topic_id:
+                continue
             msgs = s.get("messages", [])
             result.append({
                 "id": sid,
@@ -143,6 +153,7 @@ class SessionStore:
                 "message_count": len(msgs),
                 "user_id": s.get("user_id", ""),
                 "role": s.get("role", ""),
+                "topic_id": s.get("topic_id"),
             })
         # Most recent first
         result.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
@@ -174,23 +185,27 @@ router = APIRouter()
 
 
 @router.get("/sessions")
-async def list_sessions() -> dict:
-    return {"sessions": session_store.list_summaries()}
+async def list_sessions(user_id: str | None = None, topic_id: str | None = None) -> dict:
+    return {"sessions": session_store.list_summaries(user_id=user_id, topic_id=topic_id)}
 
 
 @router.delete("/sessions/{session_id}")
-async def delete_session(session_id: str) -> dict:
+async def delete_session(session_id: str, user_id: str | None = None, topic_id: str | None = None) -> dict:
     session = session_store.get(session_id)
     if not session:
+        return {"status": "error", "message": "Session not found"}
+    if user_id and session.get("user_id") != user_id:
+        return {"status": "error", "message": "Session not found"}
+    if topic_id and session.get("topic_id") != topic_id:
         return {"status": "error", "message": "Session not found"}
     session_store.delete(session_id)
     return {"status": "ok", "message": "会话已删除"}
 
 
 @router.get("/sessions/{session_id}")
-async def get_session(session_id: str) -> dict:
+async def get_session(session_id: str, user_id: str | None = None, topic_id: str | None = None) -> dict:
     session = session_store.get(session_id)
-    if not session:
+    if not session or (user_id and session.get("user_id") != user_id) or (topic_id and session.get("topic_id") != topic_id):
         return {"session": None}
     return {
         "session": {
@@ -200,6 +215,7 @@ async def get_session(session_id: str) -> dict:
             "updated_at": session.get("updated_at", ""),
             "user_id": session.get("user_id", ""),
             "role": session.get("role", ""),
+            "topic_id": session.get("topic_id"),
             "messages": session.get("messages", []),
         }
     }

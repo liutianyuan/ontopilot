@@ -91,7 +91,16 @@ async def chat(request: ChatRequest, req: Request):
     # Resolve model and ontology
     try:
         llm = _resolve_llm(app_state, request.model_id)
-        _resolve_ontology(app_state, request.ontology_id)
+        delegated_identity = None
+        if request.nano_access_token and request.ontology_id:
+            from api.main import build_nano_topic_runtime
+            runtime, schema, governance, delegated_identity = build_nano_topic_runtime(
+                request.ontology_id, request.nano_access_token, app_state.audit_logger,
+                resolve_identity=True,
+            )
+        else:
+            _resolve_ontology(app_state, request.ontology_id)
+            runtime, schema, governance = app_state.runtime, app_state.schema, app_state.governance
     except Exception as e:
         return ChatResponse(
             session_id=request.session_id or "",
@@ -102,14 +111,25 @@ async def chat(request: ChatRequest, req: Request):
             trace_events=[],
         )
 
-    runtime = app_state.runtime
-    schema = app_state.schema
-    governance = app_state.governance
-
+    effective_user_id = delegated_identity.get("user_id", request.user_id) if delegated_identity else request.user_id
+    effective_role = delegated_identity.get("role", request.role) if delegated_identity else request.role
     session_id = request.session_id
+    existing_session = session_store.get(session_id) if session_id else None
+    if existing_session and (
+        existing_session.get("user_id") != effective_user_id
+        or (request.ontology_id and existing_session.get("topic_id") not in {None, request.ontology_id})
+    ):
+        return ChatResponse(
+            session_id="",
+            response="❌ 当前会话不属于该用户或知识主题，请新建对话。",
+            turn_id=str(uuid.uuid4()),
+            awaiting_confirmation=False,
+            pending_action=None,
+            trace_events=[],
+        )
     if not session_id or session_store.get(session_id) is None:
         session_id = session_store.create_session(
-            request.user_id, request.role, request.warehouse_id
+            effective_user_id, effective_role, request.warehouse_id, request.ontology_id
         )
 
     session = session_store.get(session_id)

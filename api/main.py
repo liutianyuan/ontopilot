@@ -12,6 +12,27 @@ from ontopilot.schema import SchemaRegistry
 from ontopilot.governance import PermissionEvaluator
 from ontopilot.audit import AuditLogger
 from ontopilot.nano_provider import NanoOntologyProvider
+from ontopilot.nano_topic_provider import (NanoActionExecutor, NanoContextBuilder,
+                                           NanoObjectStore, NanoPermissionEvaluator,
+                                           NanoSchemaRegistry, NanoTopicClient)
+
+
+def build_nano_topic_runtime(topic_id: str, token: str | None, audit_logger: AuditLogger,
+                             resolve_identity: bool = False):
+    """Create a per-request runtime so Nano enforces the delegated user token."""
+    topic_client = NanoTopicClient(
+        os.getenv("NANO_API_BASE", "http://127.0.0.1:10081/api/v1"), topic_id, token=token,
+    )
+    manifest = topic_client.manifest()
+    schema = NanoSchemaRegistry(manifest)
+    store = NanoObjectStore(topic_client, schema)
+    governance = NanoPermissionEvaluator(manifest)
+    context = NanoContextBuilder(manifest)
+    from ontopilot.functions import FunctionRegistry
+    runtime = OntologyRuntime(schema, store, governance, context, FunctionRegistry(schema, store),
+                              NanoActionExecutor(topic_client, schema, governance), audit_logger, None)
+    identity = topic_client.identity() if resolve_identity else None
+    return runtime, schema, governance, identity
 
 
 @asynccontextmanager
@@ -19,11 +40,21 @@ async def lifespan(app: FastAPI):
     app.state.config_dir = "config"
     app.state.settings = load_settings(app.state.config_dir)
     app.state.active_llm = create_llm(app.state.config_dir)
-    app.state.runtime = OntologyRuntime.from_config(app.state.config_dir)
-    app.state.schema = SchemaRegistry(f"{app.state.config_dir}/ontology_schema.yaml")
-    app.state.governance = PermissionEvaluator(f"{app.state.config_dir}/permissions.yaml")
     app.state.audit_logger = AuditLogger(".ontopilot.db")
-    app.state.current_ontology_id = "ontology_schema.yaml"
+    nano_topic_id = os.getenv("NANO_TOPIC_ID")
+    if nano_topic_id:
+        app.state.runtime, schema, governance, _ = build_nano_topic_runtime(
+            nano_topic_id, os.getenv("NANO_API_TOKEN"), app.state.audit_logger,
+        )
+        app.state.schema = schema
+        app.state.governance = governance
+        app.state.current_ontology_id = nano_topic_id
+        app.state.nano_topic_client = None
+    else:
+        app.state.runtime = OntologyRuntime.from_config(app.state.config_dir)
+        app.state.schema = SchemaRegistry(f"{app.state.config_dir}/ontology_schema.yaml")
+        app.state.governance = PermissionEvaluator(f"{app.state.config_dir}/permissions.yaml")
+        app.state.current_ontology_id = "ontology_schema.yaml"
     nano_ontology_id = os.getenv("NANO_ONTOLOGY_ID")
     app.state.nano_provider = NanoOntologyProvider(
         os.getenv("NANO_API_BASE", "http://127.0.0.1:10081/api/v1"), nano_ontology_id,
@@ -38,7 +69,7 @@ app = FastAPI(title="基于知识编织的智能体平台 API", lifespan=lifespa
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:10081", "http://127.0.0.1:10081"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

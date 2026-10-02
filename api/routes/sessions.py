@@ -4,7 +4,7 @@ import json
 import sqlite3
 import uuid
 from datetime import datetime, timezone
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 
 
@@ -22,7 +22,7 @@ class SessionStore:
                     id TEXT PRIMARY KEY,
                     user_id TEXT,
                     role TEXT,
-                    warehouse_id TEXT,
+                    context_id TEXT,
                     title TEXT,
                     pending_action TEXT,
                     messages TEXT,
@@ -33,6 +33,8 @@ class SessionStore:
             columns = {row[1] for row in conn.execute("PRAGMA table_info(sessions)")}
             if "topic_id" not in columns:
                 conn.execute("ALTER TABLE sessions ADD COLUMN topic_id TEXT")
+            if "context_id" not in columns:
+                conn.execute("ALTER TABLE sessions ADD COLUMN context_id TEXT")
 
     def _load_all(self) -> dict[str, dict]:
         with sqlite3.connect(self._db_path) as conn:
@@ -44,7 +46,7 @@ class SessionStore:
                 "user_id": r["user_id"],
                 "role": r["role"],
                 "topic_id": r["topic_id"],
-                "warehouse_id": r["warehouse_id"],
+                "context_id": r["context_id"] or "",
                 "title": r["title"],
                 "pending_action": json.loads(r["pending_action"]) if r["pending_action"] else None,
                 "messages": json.loads(r["messages"]) if r["messages"] else [],
@@ -58,28 +60,28 @@ class SessionStore:
         with sqlite3.connect(self._db_path) as conn:
             conn.execute(
                 """INSERT INTO sessions
-                    (id, user_id, role, warehouse_id, topic_id, title, pending_action, messages, created_at, updated_at)
+                    (id, user_id, role, context_id, topic_id, title, pending_action, messages, created_at, updated_at)
                    VALUES (?,?,?,?,?,?,?,?,?,?)
                    ON CONFLICT(id) DO UPDATE SET
-                    user_id=excluded.user_id, role=excluded.role, warehouse_id=excluded.warehouse_id,
+                    user_id=excluded.user_id, role=excluded.role, context_id=excluded.context_id,
                     topic_id=excluded.topic_id,
                     title=excluded.title, pending_action=excluded.pending_action,
                     messages=excluded.messages, updated_at=excluded.updated_at""",
                 (
-                    session_id, s["user_id"], s["role"], s["warehouse_id"], s.get("topic_id"), s.get("title"),
+                    session_id, s["user_id"], s["role"], s["context_id"], s.get("topic_id"), s.get("title"),
                     json.dumps(s["pending_action"]) if s.get("pending_action") is not None else None,
                     json.dumps(s.get("messages", [])),
                     s["created_at"], s["updated_at"],
                 ),
             )
 
-    def create_session(self, user_id: str, role: str, warehouse_id: str, topic_id: str | None = None) -> str:
+    def create_session(self, user_id: str, role: str, context_id: str, topic_id: str | None = None) -> str:
         session_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
         self._sessions[session_id] = {
             "user_id": user_id,
             "role": role,
-            "warehouse_id": warehouse_id,
+            "context_id": context_id,
             "topic_id": topic_id,
             "messages": [],
             "pending_action": None,
@@ -185,12 +187,16 @@ router = APIRouter()
 
 
 @router.get("/sessions")
-async def list_sessions(user_id: str | None = None, topic_id: str | None = None) -> dict:
-    return {"sessions": session_store.list_summaries(user_id=user_id, topic_id=topic_id)}
+async def list_sessions(request: Request, topic_id: str | None = None) -> dict:
+    from api.nano_identity import delegated_identity
+    identity = delegated_identity(request)
+    return {"sessions": session_store.list_summaries(user_id=identity["user_id"], topic_id=topic_id)}
 
 
 @router.delete("/sessions/{session_id}")
-async def delete_session(session_id: str, user_id: str | None = None, topic_id: str | None = None) -> dict:
+async def delete_session(session_id: str, request: Request, topic_id: str | None = None) -> dict:
+    from api.nano_identity import delegated_identity
+    user_id = delegated_identity(request)["user_id"]
     session = session_store.get(session_id)
     if not session:
         return {"status": "error", "message": "Session not found"}
@@ -203,7 +209,9 @@ async def delete_session(session_id: str, user_id: str | None = None, topic_id: 
 
 
 @router.get("/sessions/{session_id}")
-async def get_session(session_id: str, user_id: str | None = None, topic_id: str | None = None) -> dict:
+async def get_session(session_id: str, request: Request, topic_id: str | None = None) -> dict:
+    from api.nano_identity import delegated_identity
+    user_id = delegated_identity(request)["user_id"]
     session = session_store.get(session_id)
     if not session or (user_id and session.get("user_id") != user_id) or (topic_id and session.get("topic_id") != topic_id):
         return {"session": None}

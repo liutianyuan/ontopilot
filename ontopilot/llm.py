@@ -28,6 +28,10 @@ def create_llm_from_config(model_config: dict[str, Any]) -> BaseChatModel:
         base_url = model_config.get("base_url", "")
         if base_url:
             kwargs["base_url"] = base_url
+        if model_config.get("enable_thinking") is not None:
+            kwargs["extra_body"] = {
+                "chat_template_kwargs": {"enable_thinking": bool(model_config["enable_thinking"])}
+            }
         return ChatOpenAI(**kwargs)
     else:
         raise ValueError(f"Unknown LLM provider: {provider}")

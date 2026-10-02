@@ -5,14 +5,11 @@ from typing import Any
 
 class ChatRequest(BaseModel):
     session_id: str | None = None
-    user_id: str = "dispatcher_001"
-    role: str = "dispatcher"
-    warehouse_id: str = "WH-SC-001"
+    context_id: str = ""
     message: str
     confirmed: bool = False
     model_id: str | None = None
     ontology_id: str | None = None
-    nano_access_token: str | None = None
 
 
 class ChatResponse(BaseModel):

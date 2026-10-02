@@ -1,11 +1,6 @@
 from __future__ import annotations
 import copy
-import base64
-import hashlib
-import hmac
-import json
 import os
-import time
 import yaml
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -46,10 +41,6 @@ class LoginRequest(BaseModel):
     password: str
 
 
-class SSOLoginRequest(BaseModel):
-    token: str
-
-
 @router.post("/login")
 async def login(body: LoginRequest) -> dict:
     users = _load_users()
@@ -60,28 +51,6 @@ async def login(body: LoginRequest) -> dict:
                 "user": {k: v for k, v in u.items() if k != "password"},
             }
     raise HTTPException(401, "用户名或密码错误")
-
-
-@router.post("/sso/login")
-async def sso_login(body: SSOLoginRequest) -> dict:
-    """Accept a short-lived signed handoff created by nano-ontoprompt."""
-    secret = os.getenv("ONTOPILOT_SSO_SECRET")
-    if not secret:
-        raise HTTPException(503, "OntoPilot SSO is not configured")
-    try:
-        encoded, signature = body.token.rsplit(".", 1)
-        expected = hmac.new(secret.encode(), encoded.encode(), hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(signature, expected):
-            raise ValueError("invalid signature")
-        payload = json.loads(base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4)))
-        if payload.get("aud") != "ontopilot" or int(payload.get("exp", 0)) < time.time():
-            raise ValueError("expired or invalid audience")
-        user = next((item for item in _load_users() if item["username"] == payload.get("username")), None)
-        if not user or user["role"] != payload.get("role"):
-            raise ValueError("user is not authorized")
-    except (ValueError, TypeError, UnicodeDecodeError, json.JSONDecodeError):
-        raise HTTPException(401, "无效或已过期的单点登录令牌")
-    return {"status": "ok", "user": {key: value for key, value in user.items() if key != "password"}}
 
 
 # ── User CRUD ────────────────────────────────────────────────────────────

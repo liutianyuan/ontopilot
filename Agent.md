@@ -19,31 +19,60 @@ POC 暂不包含科研取数，重点完成：
 | 肾病 Schema v1.1 | 已导入并发布 | 根据实例和场景反馈迭代版本 |
 | Schema 列表、图谱与分类筛选 | 已实现 | 补充规则/动作详情及发布校验 |
 | Schema 增删改和 YAML 导入 | 已实现 | 补充版本差异与回滚策略 |
-| 医学知识实例构建 | POC 已完成 | 375 个旧知识实例完成 v1.1 对齐，76 个旧辅助类型隔离 |
-| 临床实时事件与映射 | POC 已完成 | 统一事件模型、11 条术语映射和 P-CKD-042 场景已落库 |
-| 规则、动作与 Agent 闭环 | POC 已完成 | CKD G4、高钾、二甲双胍三条规则及跨工程确认写回已通过 E2E |
+| 医学知识与临床实例 | POC 已完成 | 提供可重复安装的 P-CKD-042 知识、临床事实和待检查数据 |
+| 知识主题运行 API | POC 已完成 | Manifest、对象查询、关系遍历、规则求值和动作执行均以发布主题为边界 |
+| 规则、动作与 Agent 闭环 | POC 已完成 | 9 条规则、5 个动作；风险报告及跨工程确认/拒绝/模拟执行已通过 E2E |
 
-### 1.1 当前可运行 POC 基线（2026-08-23）
+### 1.1 当前可运行 POC 基线（2026-10-01）
 
 当前主闭环已经实际走通，不再只是设计目标：
 
 ```text
 Schema v1.1 发布
 → 旧医学知识实例对齐
-→ HIS/EMR/LIS 六条模拟事件
-→ Patient/Encounter/DiagnosisRecord/Observation/MedicationOrder
-→ coded_as / instance_of / medication_concept
-→ CKD G4、高钾、二甲双胍规则求值
-→ Alert 与自动处方拦截
-→ 智能体平台 Remote Provider
-→ 高钾动作预览与医生确认
-→ 模拟 EMR 创建复查血钾医嘱
-→ 智能体平台回查 ActionRun 和患者最新状态
+→ P-CKD-042 医学知识、临床事实和检查任务实例
+→ nano 发布 Topic Manifest（Schema／规则／动作／权限／版本）
+→ 智能体后端按用户令牌读取选中知识主题
+→ 9 条发布规则经 Nano 统一规则端点求值
+→ Agent 调用通用对象上下文与主题规则工具
+→ 大模型仅依据当前主题实际返回的对象、关系和规则证据组织回答
+→ 动作预览并生成 confirmation_id
+→ 用户确认或拒绝
+→ Nano 模拟执行适配器写入 ActionRun
+→ 智能体展示执行状态和可审计 Trace
 ```
 
-live 验证结果：Schema v1.1 共 30 个类型；P-CKD-042 当前有 9 条临床事实、3 条规则求值、2 条预警；高钾动作写回状态为 `accepted`，统一 `trace_id` 可从预警贯穿确认和 ActionRun。临床子图已同步到 Neo4j。
+live 验证结果：Schema v1.1 共 30 个类型、37 个关系、9 条规则和 5 个动作。P-CKD-042 实测命中 CKD G4、高钾、二甲双胍禁用、ARB 高钾复核、SGLT2i 不宜启动、非奈利酮暂缓和 CKD4 入院评估；二甲双胍动作已完成 `pending_confirmation → completed`。Neo4j 是可选查询投影，不可用时 SQL 主题运行 API 和完整 POC 仍可启动。
 
-一键验收脚本位于 `ontopilot/scripts/run_nephrology_poc_e2e.py`。运行时通过环境变量提供 nano 地址、本体 ID 和专用服务账号或 Token，不在代码库保存密码。
+POC 使用 Nano 中已发布的「肾病临床安全与入院评估」知识主题（ID `428ece7e-7a9f-47b2-861d-572fca2d2162`）。`P-CKD-042` 及其检验、医嘱、待完成检查是该主题下的可重复验收实例，不是另一个知识主题，也不替代用户已编织的数据。运行时使用 Nano 登录令牌访问两个后端，不再使用跨系统 SSO 跳转或由浏览器传入角色。
+
+当前跨工程契约如下：
+
+| Nano 运行接口 | 用途 |
+|---|---|
+| `GET /agent-runtime/topics` | 列出当前用户可使用的已发布知识主题 |
+| `GET /agent-runtime/topics/{id}/manifest` | 返回 Schema、关系、规则、动作、权限与版本指纹 |
+| `POST /agent-runtime/topics/{id}/events:ingest` | 按当前 Schema 的对象类型幂等接入任意业务事件，并可触发规则重算 |
+| `POST /agent-runtime/topics/{id}/objects:query` | 按 Schema 类型和原始属性名查询主题实例 |
+| `GET /agent-runtime/topics/{id}/objects/{object_key}/context` | 用任意实例 ID、名称或标识属性读取对象及一跳关系上下文 |
+| `POST /agent-runtime/topics/{id}/graph:traverse` | 遍历主题实例关系 |
+| `POST /agent-runtime/topics/{id}/rules:evaluate` | 用发布规则进行确定性求值，返回条件、证据和建议动作 |
+| `POST /agent-runtime/topics/{id}/actions:preview` | 生成动作影响预览和 `confirmation_id` |
+| `POST /agent-runtime/topics/{id}/actions:commit` | 确认或拒绝，并由可替换执行适配器处理 |
+| `GET /agent-runtime/topics/{id}/action-runs/{run_id}` | 回查动作状态、前后快照和副作用 |
+
+智能体后端不再按规则名查找本地硬编码 `FunctionRegistry`。`Manifest.rules[].executor_key` 只作为远程规则标识，所有求值都回到 Nano；动作同样不执行 Schema 中的任意代码字符串，而是经过预览、权限、确认和执行适配器。当前适配器为模拟实现，后续替换为 EMR/HIS/任务系统连接器时对 Agent 和前端契约无影响。
+
+### 1.2 平台通用性边界
+
+两个工程的平台代码只认识以下元对象：知识主题、对象类型、对象、属性、关系、规则、动作、事件和执行记录。平台运行时不得出现 `Patient`、`patient_id`、疾病、药物、检验等行业专用字段或类型映射，也不得按某一行业的命名猜测对象语义。
+
+- 行业 Schema、字段、规则表达式和实例值只存在于 Nano 的主题配置与主题数据中。
+- 对象定位统一使用 `object_key/object_id`；Nano 根据当前主题实例的 ID、名称或任意标量属性匹配。
+- Agent 工具统一为 `get_object_context`、`object_query`、`traverse_topic_graph`、`evaluate_object_rules`、动作预览与执行。
+- 结构化编织建议只比较来源字段与当前 Schema 属性，不按患者、疾病或其他行业关键词做特殊推断。
+- 类型 `category` 是用户可定义的自由标签，平台不再限制为固定三分类。
+- 本文后续肾病名称均是当前 POC 的主题数据与验收示例，不是平台内置模型，也不会影响其他行业主题。
 
 ## 2. 核心认识与概念边界
 
@@ -179,7 +208,8 @@ flowchart TB
         S2["Schema 管理<br/>YAML 导入、列表、图谱、增删改、发布"]
         I1["实例态：知识实例构建"]
         I2["实例态：临床事件映射"]
-        G1[("Neo4j<br/>统一肾病实例图")]
+        G1[("SQL Topic Store<br/>统一肾病实例与关系")]
+        G2[("Neo4j<br/>可选查询投影")]
         R1["运行态：规则求值与动作编排"]
         P1[("PostgreSQL<br/>Schema、映射、运行记录与审计")]
         A1["查询／规则／动作／事件 API"]
@@ -189,6 +219,7 @@ flowchart TB
         S1 --> I2
         I1 --> G1
         I2 --> G1
+        G1 -.可选同步.-> G2
         G1 --> R1
         R1 --> P1
         G1 --> A1

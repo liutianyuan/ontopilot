@@ -1,31 +1,24 @@
 from __future__ import annotations
-import os
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
+from typing import Any
 
-from ontopilot.actions import ActionExecutor
 from ontopilot.audit import AuditLogger
-from ontopilot.context import ContextBuilder
-from ontopilot.functions import FunctionRegistry
-from ontopilot.governance import PermissionEvaluator
-from ontopilot.schema import SchemaRegistry
-from ontopilot.simulation import SingleStepSimulator
-from ontopilot.store import ObjectStore
 from ontopilot.trace import TraceEvent, TraceRecorder
 
 
 class OntologyRuntime:
     def __init__(
         self,
-        schema: SchemaRegistry,
-        store: ObjectStore,
-        governance: PermissionEvaluator,
-        context_builder: ContextBuilder,
-        functions: FunctionRegistry,
-        actions: ActionExecutor,
+        schema: Any,
+        store: Any,
+        governance: Any,
+        context_builder: Any,
+        functions: Any,
+        actions: Any,
         audit: AuditLogger,
-        simulator: SingleStepSimulator | None = None,
     ):
         self._schema = schema
         self._store = store
@@ -34,38 +27,10 @@ class OntologyRuntime:
         self._functions = functions
         self._actions = actions
         self._audit = audit
-        self._simulator = simulator
         self._tracer = TraceRecorder(conversation_id=str(uuid.uuid4()))
         self._event_callback = None
-
-    # Sentinel to distinguish "use default" from "skip seed loading"
-    _SKIP_SEED = object()
-
-    @classmethod
-    def from_config(
-        cls,
-        config_dir: str = "config",
-        db_path: str = ".ontopilot.db",
-        schema_path: str | None = None,
-        seed_path: str | None = None,
-        permissions_path: str | None = None,
-        context_path: str | None = None,
-    ) -> "OntologyRuntime":
-        schema = SchemaRegistry(schema_path or os.path.join(config_dir, "ontology_schema.yaml"))
-        store = ObjectStore(db_path, schema)
-        if seed_path is cls._SKIP_SEED:
-            store.clear_all()
-        else:
-            store.load_seed_data(seed_path or os.path.join(config_dir, "seed_data.yaml"))
-        governance = PermissionEvaluator(permissions_path or os.path.join(config_dir, "permissions.yaml"))
-        context_builder = ContextBuilder(
-            context_path or os.path.join(config_dir, "context_sources.yaml"), store, governance
-        )
-        functions = FunctionRegistry(schema, store)
-        actions = ActionExecutor(schema, store, governance)
-        audit = AuditLogger(db_path)
-        simulator = SingleStepSimulator(schema, store, functions)
-        return cls(schema, store, governance, context_builder, functions, actions, audit, simulator)
+        self._query_cache: dict[tuple, list | int] = {}
+        self._object_context_cache: dict[tuple[str, str], dict] = {}
 
     # ── helpers ───────────────────────────────────────────────────────────────
 
@@ -91,34 +56,23 @@ class OntologyRuntime:
                 pass
 
     def _apply_data_scope(self, role: str, object_type: str, filters: dict) -> dict:
-        allowed_regions = self._governance.get_allowed_warehouse_regions(role)
-        if not allowed_regions:
-            return filters
-        new_filters = dict(filters)
-        if object_type == "Warehouse":
-            new_filters["region"] = allowed_regions if len(allowed_regions) > 1 else allowed_regions[0]
-        elif object_type == "Shipment":
-            allowed_wh = [
-                w["warehouseId"]
-                for w in self._store.query("Warehouse", {"region": allowed_regions}, ["warehouseId"])
-            ]
-            if "warehouseId" not in new_filters:
-                new_filters["warehouseId"] = allowed_wh
-        return new_filters
+        """Apply only schema-neutral filters supplied by the active adapter."""
+        scope = self._governance.get_data_scope(role) if hasattr(self._governance, "get_data_scope") else {}
+        return {**filters, **scope.get(object_type, {})}
 
     def get_trace_events(self, turn_id: str) -> list[TraceEvent]:
         return self._tracer.get_events(turn_id)
 
     # ── build_context ─────────────────────────────────────────────────────────
 
-    def build_context(self, user_id: str, role: str, warehouse_id: str,
+    def build_context(self, user_id: str, role: str, context_id: str,
                       turn_id: str | None = None) -> str:
         t0 = time.monotonic()
         turn_id = turn_id or str(uuid.uuid4())
-        ctx = self._context_builder.build(user_id, role, warehouse_id)
+        ctx = self._context_builder.build(user_id, role, context_id)
         ms = int((time.monotonic() - t0) * 1000)
         self._record(turn_id, "context", "context_builder", "success",
-                     {"warehouse_id": warehouse_id}, {"length": len(ctx)}, "pass", ms)
+                     {"context_id": context_id}, {"length": len(ctx)}, "pass", ms)
         return ctx
 
     # ── query ─────────────────────────────────────────────────────────────────
@@ -165,6 +119,14 @@ class OntologyRuntime:
             raise PermissionError(f"Role '{role}' cannot query {object_type}")
 
         scoped_filters = self._apply_data_scope(role, object_type, filters or {})
+        cache_key = (turn_id, object_type, repr(sorted(scoped_filters.items())),
+                     tuple(properties or []), aggregation)
+        if cache_key in self._query_cache:
+            result = self._query_cache[cache_key]
+            self._record(turn_id, "query", f"object_query:{object_type}", "cached",
+                         {"object_type": object_type, "filters": scoped_filters},
+                         {"result_count": len(result) if isinstance(result, list) else result}, "pass", 0)
+            return result
 
         if aggregation == "count":
             result = self._store.count(object_type, scoped_filters)
@@ -172,6 +134,7 @@ class OntologyRuntime:
         else:
             result = self._store.query(object_type, scoped_filters, properties)
             out = {"result_count": len(result), "properties": properties}
+        self._query_cache[cache_key] = result
 
         ms = int((time.monotonic() - t0) * 1000)
         audit_id = self._audit.log(user_id, "query", object_type, None,
@@ -179,6 +142,26 @@ class OntologyRuntime:
         self._record(turn_id, "query", f"object_query:{object_type}", "success",
                      {"object_type": object_type, "filters": scoped_filters},
                      out, "pass", ms, audit_id=audit_id)
+        return result
+
+    def get_object_context(self, user_id: str, role: str, object_key: str,
+                            turn_id: str | None = None) -> dict:
+        """Fetch all available topic facts for one business identifier."""
+        turn_id = turn_id or str(uuid.uuid4())
+        cache_key = (turn_id, object_key)
+        if cache_key in self._object_context_cache:
+            return self._object_context_cache[cache_key]
+        t0 = time.monotonic()
+        result = self.topic_client.object_context(object_key)
+        self._object_context_cache[cache_key] = result
+        ms = int((time.monotonic() - t0) * 1000)
+        audit_id = self._audit.log(user_id, "query", "ObjectContext", object_key,
+                                   {"object_key": object_key},
+                                   {"found": result.get("found"), "fact_count": len(result.get("facts", []))}, "pass")
+        self._record(turn_id, "query", "object_context", "success" if result.get("found") else "empty",
+                     {"object_key": object_key},
+                     {"found": result.get("found"), "fact_count": len(result.get("facts", [])),
+                      "relation_count": len(result.get("relations", []))}, "pass", ms, audit_id=audit_id)
         return result
 
     # ── traverse ──────────────────────────────────────────────────────────────
@@ -252,6 +235,45 @@ class OntologyRuntime:
                      out_summary, "pass", ms, audit_id=audit_id)
         return result
 
+    def evaluate_object_rules(self, user_id: str, role: str, object_id: str,
+                               turn_id: str | None = None) -> list[dict]:
+        """Evaluate every rule published by the selected topic for one object."""
+        turn_id = turn_id or str(uuid.uuid4())
+        context = self.get_object_context(user_id, role, object_id, turn_id)
+        if not context.get("found"):
+            self._record(turn_id, "logic", "evaluate_object_rules", "empty",
+                         {"object_id": object_id},
+                         {"reason": "object_not_found", "result_count": 0}, "pass", 0)
+            return []
+        function_names = self._governance.get_allowed_functions(role)
+        if not function_names:
+            return []
+
+        def evaluate(function_name: str) -> dict:
+            try:
+                result = self.call_function(user_id, role, function_name,
+                                            {"object_id": object_id}, turn_id)
+                if isinstance(result, dict):
+                    # The same object evidence can be repeated in every rule
+                    # response. Conditions already contain the actual values
+                    # used by the evaluator, so do not flood the model context
+                    # with nine copies of the full graph records.
+                    result = {key: value for key, value in result.items()
+                              if key not in {"evidence", "formula"}}
+                return result
+            except (KeyError, PermissionError, RuntimeError) as exc:
+                return {"function_name": function_name, "status": "error", "error": str(exc)}
+
+        # Every request still goes through Nano's authenticated rule endpoint;
+        # concurrency only prevents total latency from growing linearly with
+        # the number of rules published by a topic.
+        indexed_results: dict[str, dict] = {}
+        with ThreadPoolExecutor(max_workers=min(8, len(function_names))) as pool:
+            futures = {pool.submit(evaluate, name): name for name in function_names}
+            for future in as_completed(futures):
+                indexed_results[futures[future]] = future.result()
+        return [indexed_results[name] for name in function_names]
+
     # ── preview_action ────────────────────────────────────────────────────────
 
     def preview_action(self, user_id: str, role: str, action_name: str,
@@ -267,7 +289,8 @@ class OntologyRuntime:
         self._record(turn_id, "action", f"preview_action:{action_name}",
                      preview["status"],
                      {"action": action_name, "params": params},
-                     {"changes": preview["changes"]}, "pass", ms)
+                     {"changes": preview.get("changes", []),
+                      "confirmation_id": preview.get("confirmation_id")}, "pass", ms)
         return preview
 
     # ── execute_action ────────────────────────────────────────────────────────
@@ -286,31 +309,7 @@ class OntologyRuntime:
         audit_id = self._audit.log(user_id, "action", None, None,
                                    {"action": action_name, "params": params, "confirmed": confirmed},
                                    {"status": result["status"]}, "pass")
-        self._record(turn_id, "action", f"execute_action:{action_name}", "success",
+        self._record(turn_id, "action", f"execute_action:{action_name}", result.get("status", "success"),
                      {"action": action_name, "confirmed": confirmed},
                      {"status": result["status"]}, "pass", ms, audit_id=audit_id)
-        return result
-
-    # ── simulate ──────────────────────────────────────────────────────────────
-
-    def simulate(self, user_id: str, role: str, shipment_id: str,
-                 options: list[dict], turn_id: str | None = None) -> list[dict]:
-        turn_id = turn_id or str(uuid.uuid4())
-        t0 = time.monotonic()
-
-        if not self._governance.can_call_function(role, "compareDecisions"):
-            raise PermissionError(f"Role '{role}' cannot run simulations")
-
-        if self._simulator is None:
-            raise RuntimeError("Simulator not initialized")
-
-        result = self._simulator.compare(shipment_id, options)
-        ms = int((time.monotonic() - t0) * 1000)
-        audit_id = self._audit.log(user_id, "simulation", "Shipment", shipment_id,
-                                   {"options": options}, {"result_count": len(result)}, "pass")
-        involved_types = result[0]["involved_types"] if result else {"mutated": [], "referenced": []}
-        self._record(turn_id, "simulation", "simulate_decisions", "success",
-                     {"shipment_id": shipment_id, "options": [o["name"] for o in options]},
-                     {"result_count": len(result), "involved_types": involved_types},
-                     "pass", ms, audit_id=audit_id)
         return result

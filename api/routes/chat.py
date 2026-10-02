@@ -1,7 +1,6 @@
 from __future__ import annotations
 import asyncio
 import json
-import os
 import uuid
 
 from fastapi import APIRouter, Request
@@ -33,57 +32,6 @@ def _resolve_llm(app_state, model_id: str | None):
     return app_state._llm_cache[model_id]
 
 
-def _resolve_ontology(app_state, ontology_id: str | None):
-    """Switch ontology if requested, rebuild runtime."""
-    if ontology_id is None:
-        return
-    current = getattr(app_state, "current_ontology_id", None)
-    if ontology_id == current:
-        return
-    config_dir = app_state.config_dir
-    path = os.path.join(config_dir, ontology_id)
-    if not os.path.exists(path):
-        return
-
-    from ontopilot.runtime import OntologyRuntime
-    from ontopilot.schema import SchemaRegistry
-    from ontopilot.governance import PermissionEvaluator
-    from ontopilot.audit import AuditLogger
-
-    # Detect companion config files
-    prefix = None
-    for suffix in ("_ontology.yaml", "_ontology.yml", "_schema.yaml", "_schema.yml"):
-        if ontology_id.endswith(suffix) and ontology_id != suffix:
-            prefix = ontology_id[: -len(suffix)]
-            break
-
-    def companion(name: str) -> str | None:
-        if not prefix:
-            return None
-        p = os.path.join(config_dir, f"{prefix}_{name}")
-        return p if os.path.exists(p) else None
-
-    # If prefix detected but no companion seed file, skip seed loading entirely
-    seed_arg = companion("seed.yaml")
-    if prefix is not None and seed_arg is None:
-        seed_arg = OntologyRuntime._SKIP_SEED
-
-    app_state.schema = SchemaRegistry(path)
-    app_state.runtime = OntologyRuntime.from_config(
-        config_dir,
-        schema_path=path,
-        seed_path=seed_arg,
-        permissions_path=companion("permissions.yaml"),
-        context_path=companion("context.yaml"),
-    )
-    app_state.runtime.nano_provider = getattr(app_state, "nano_provider", None)
-    app_state.governance = PermissionEvaluator(
-        companion("permissions.yaml") or os.path.join(config_dir, "permissions.yaml")
-    )
-    app_state.audit_logger = AuditLogger(".ontopilot.db")
-    app_state.current_ontology_id = ontology_id
-
-
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest, req: Request):
     app_state = req.app.state
@@ -91,28 +39,26 @@ async def chat(request: ChatRequest, req: Request):
     # Resolve model and ontology
     try:
         llm = _resolve_llm(app_state, request.model_id)
-        delegated_identity = None
-        if request.nano_access_token and request.ontology_id:
-            from api.main import build_nano_topic_runtime
-            runtime, schema, governance, delegated_identity = build_nano_topic_runtime(
-                request.ontology_id, request.nano_access_token, app_state.audit_logger,
-                resolve_identity=True,
-            )
-        else:
-            _resolve_ontology(app_state, request.ontology_id)
-            runtime, schema, governance = app_state.runtime, app_state.schema, app_state.governance
+        if not request.ontology_id:
+            raise ValueError("请选择知识主题")
+        from api.nano_identity import bearer_token
+        from api.main import build_nano_topic_runtime
+        runtime, schema, governance, delegated_identity = build_nano_topic_runtime(
+            request.ontology_id, bearer_token(req), app_state.audit_logger,
+            resolve_identity=True,
+        )
     except Exception as e:
         return ChatResponse(
             session_id=request.session_id or "",
-            response=f"❌ 模型初始化失败：{str(e)}\n\n请检查模型配置中的 API Key 是否正确。",
+            response=f"❌ 无法初始化当前知识主题会话：{str(e)}\n\n请检查主题访问权限、Nano 服务和模型配置。",
             turn_id=str(uuid.uuid4()),
             awaiting_confirmation=False,
             pending_action=None,
             trace_events=[],
         )
 
-    effective_user_id = delegated_identity.get("user_id", request.user_id) if delegated_identity else request.user_id
-    effective_role = delegated_identity.get("role", request.role) if delegated_identity else request.role
+    effective_user_id = delegated_identity["user_id"]
+    effective_role = delegated_identity["role"]
     session_id = request.session_id
     existing_session = session_store.get(session_id) if session_id else None
     if existing_session and (
@@ -129,7 +75,7 @@ async def chat(request: ChatRequest, req: Request):
         )
     if not session_id or session_store.get(session_id) is None:
         session_id = session_store.create_session(
-            effective_user_id, effective_role, request.warehouse_id, request.ontology_id
+            effective_user_id, effective_role, request.context_id, request.ontology_id
         )
 
     session = session_store.get(session_id)
@@ -146,7 +92,7 @@ async def chat(request: ChatRequest, req: Request):
             runtime=runtime, llm=llm, schema=schema, governance=governance,
             user_id=session["user_id"],
             role=session["role"],
-            warehouse_id=session["warehouse_id"],
+            context_id=session["context_id"],
             user_message=request.message,
             history=session_store.get_history(session_id),
             confirmed=request.confirmed,

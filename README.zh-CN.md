@@ -13,13 +13,13 @@
 <h1 align="center">基于知识编织的智能体平台</h1>
 <p align="center"><em>基于 Ontology 的业务决策支持系统 + LLM 智能代理</em></p>
 
-基于知识编织的智能体平台是一个构建**知识驱动的 LLM 智能体**的框架，核心机制是通过 **YAML 本体定义**声明式描述业务对象类型、操作、函数、权限和上下文。智能体在 Ontology 定义的边界内进行查询、计算、仿真和执行业务操作。
+本工程是“基于知识编织的智能体平台”的**后端运行服务**。本体、规则、动作、权限和实例均来自 `nano-ontoprompt` 已发布知识主题；本工程负责对话编排、证据报告、确认流程、Trace 与审计。
 
 ---
 
 ## 功能特性
 
-- **声明式 Ontology** — 用 YAML 文件定义业务对象、关系、操作和函数
+- **知识主题驱动** — 每个 Nano 已发布知识主题就是一个可选本体
 - **LLM 代理** — LangGraph 驱动，根据 Ontology 动态加载工具
 - **基于角色的权限** — 按角色细粒度控制查询、函数、操作和数据范围
 - **操作引擎** — 先预览后执行的工作流，自动验证和确认
@@ -27,23 +27,23 @@
 - **会话管理** — 多轮对话自动保存，历史浏览
 - **Trace 与审计** — 完整操作追踪记录和审计日志
 - **FastAPI 后端** — 异步 REST API + SSE 流式实时响应
-- **React 前端** — 现代化 UI，支持模型/Ontology 切换、会话侧栏和推理过程展示
+- **统一前端** — Nano 智能体工作台提供主题切换、会话、表格报告、确认和推理过程
 
 ## 架构
 
 ```
-Ontology YAML 文件
+Nano 已发布知识主题
       │
       ▼
 ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
 │ Schema      │───▶│ Ontology     │───▶│ LangGraph   │
 │ Registry    │    │ Runtime      │    │ Agent + LLM │
 ├─────────────┤    ├──────────────┤    ├─────────────┤
-│ ObjectStore │    │ ActionExec   │    │ FastAPI     │
-│ (SQLite)    │    │ FunctionReg  │    │ 后端       │
+│ Topic API   │    │ ActionExec   │    │ FastAPI     │
+│ (Nano)      │    │ Remote Rules│    │ 后端       │
 ├─────────────┤    │ Governance   │    ├─────────────┤
 │ Permission  │    │ Simulation   │    │ React       │
-│ Evaluator   │    │ Context      │    │ 前端       │
+│ Evaluator   │    │ Context      │    │ Nano UI     │
 └─────────────┘    └──────────────┘    └─────────────┘
 ```
 
@@ -52,7 +52,6 @@ Ontology YAML 文件
 ### 环境要求
 
 - Python 3.11+
-- Node.js 18+
 
 ### 启动后端
 
@@ -63,15 +62,12 @@ Ontology YAML 文件
 该脚本会通过 `uv` 同步依赖，并执行 `uv run python main.py`。
 API 服务运行在 `http://localhost:8100`。
 
-### 启动前端
+### 前端入口
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-开发服务器运行在 `http://localhost:5174`（通过 Vite 代理转发到后端）。
+本工程现为纯后端智能体运行服务，不再维护独立前端。统一界面位于
+`nano-ontoprompt/frontend` 的“智能体工作台”，通过 `VITE_AGENT_API_BASE`
+连接本服务（默认 `http://localhost:8100/api`）。浏览器只携带 Nano 登录令牌，
+本服务再向 Nano 校验用户身份、角色和所选知识主题。
 
 ### 默认登录账号
 
@@ -86,7 +82,7 @@ npm run dev
 
 ## Ubuntu 生产部署
 
-推荐使用 **systemd + Nginx**：systemd 在 `127.0.0.1:8100` 常驻运行 FastAPI，Nginx 托管前端静态文件并将 `/api` 反向代理至后端。支持 Ubuntu 22.04/24.04。
+推荐使用 **systemd + Nginx**：systemd 在 `127.0.0.1:8100` 常驻运行 FastAPI；Nano 前端的 Nginx 将智能体 API 转发到本服务。支持 Ubuntu 22.04/24.04。
 
 ### 一键部署
 
@@ -100,18 +96,14 @@ cp config/settings.yaml.example config/settings.yaml
 nano .env
 ```
 
-运行部署脚本（会安装 Node.js 20、uv、Nginx，构建前端并创建 systemd 服务）：
+运行部署脚本（安装 `uv` 并创建后端 systemd 服务）：
 
 ```bash
 chmod +x scripts/deploy-ubuntu.sh
 ./scripts/deploy-ubuntu.sh
 ```
 
-部署完成后访问 `http://<服务器 IP>`。若服务器启用了 UFW，放行 HTTP：
-
-```bash
-sudo ufw allow 'Nginx Full'
-```
+部署完成后由 Nano 前端或网关访问 `http://127.0.0.1:8100/api`。
 
 ### 分步部署命令
 
@@ -127,18 +119,29 @@ RELOAD=0 HOST=127.0.0.1 PORT=8100 uv run python main.py
 
 
 nohup env RELOAD=0 HOST=127.0.0.1 PORT=8100 uv run python main.py > ontopilot-api.log 2>&1 &
-```
 
-前端：
 
-```bash
-cd frontend
-npm ci
-npm run build
-sudo mkdir -p /var/www/ontopilot
-sudo cp -R dist/. /var/www/ontopilot/
-sudo chown -R www-data:www-data /var/www/ontopilot
+nohup env \
+  RELOAD=0 \
+  HOST=127.0.0.1 \
+  PORT=8101 \
+  NANO_API_BASE=http://127.0.0.1:28081/api/v1 \
+  CORS_ALLOWED_ORIGINS=http://182.18.82.150:11081 \
+  NANO_TOPIC_ID= \
+  NANO_ONTOLOGY_ID= \
+  uv run python main.py > ontopilot-api.log 2>&1 &
+
 ```
+本机
+nohup env \
+  RELOAD=0 \
+  HOST=127.0.0.1 \
+  PORT=8101 \
+  NANO_API_BASE=http://127.0.0.1:28081/api/v1 \
+  CORS_ALLOWED_ORIGINS=http://182.18.82.150:10081 \
+  NANO_TOPIC_ID= \
+  NANO_ONTOLOGY_ID= \
+  uv run python main.py > ontopilot-api.log 2>&1 &
 
 生产环境请使用脚本生成的 systemd 与 Nginx 配置，而不是让上述后端命令占用终端。常用运维命令：
 
@@ -146,10 +149,9 @@ sudo chown -R www-data:www-data /var/www/ontopilot
 sudo systemctl status ontopilot
 sudo journalctl -u ontopilot -f
 sudo systemctl restart ontopilot
-sudo nginx -t
 ```
 
-更新版本后，在项目目录重新执行 `./scripts/deploy-ubuntu.sh` 即可重新安装依赖、构建前端并重启服务。脚本不会覆盖已有的 `.env` 和 `config/settings.yaml`。
+更新版本后，在项目目录重新执行 `./scripts/deploy-ubuntu.sh` 即可重新安装依赖并重启服务。脚本不会覆盖已有的 `.env` 和 `config/settings.yaml`。
 
 ## 示例
 
@@ -195,11 +197,6 @@ ontopilot/           # 核心库
 api/                 # FastAPI 后端
   ├── main.py        # 应用入口 & 中间件
   └── routes/        # 路由模块 (chat, settings, sessions, users, audit)
-
-frontend/            # React 前端 (Vite + Tailwind)
-  └── src/
-      ├── App.tsx    # 主应用组件
-      └── components/  # UI 组件
 
 config/              # Ontology 配置文件
 tests/               # 测试套件

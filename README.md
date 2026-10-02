@@ -61,17 +61,11 @@ ontology YAML files
 ```
 
 This script syncs dependencies with `uv` and runs `uv run python main.py`.
-The API server starts at `http://localhost:8100`.
+The API server starts at `http://localhost:8100`. This repository is now backend-only; the unified Agent Console lives in `nano-ontoprompt/frontend` and connects through `VITE_AGENT_API_BASE`.
 
 ### Frontend
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-The dev server starts at `http://localhost:5174` with Vite proxy to the backend.
+This repository is backend-only. Use the Agent Console in `nano-ontoprompt/frontend` and set `VITE_AGENT_API_BASE` when the runtime is not available at `http://localhost:8100/api`.
 
 ### Default Login Accounts
 
@@ -86,7 +80,7 @@ Change the default passwords through the administrator account after production 
 
 ## Ubuntu Production Deployment
 
-The deployment uses systemd for the FastAPI service and Nginx for the built frontend and `/api` reverse proxy. On Ubuntu 22.04/24.04:
+The deployment uses systemd for the FastAPI service. The Nano deployment or an upstream gateway owns the browser-facing reverse proxy.
 
 ```bash
 git clone <repository-url> ontopilot
@@ -98,7 +92,7 @@ chmod +x scripts/deploy-ubuntu.sh
 ./scripts/deploy-ubuntu.sh
 ```
 
-Open `http://<server-ip>` after deployment. The script installs Node.js 20, uv, and Nginx when needed, then installs dependencies, builds the frontend, and creates the services. It preserves existing `.env` and `config/settings.yaml` files and can be rerun after an update.
+The script installs `uv`, installs backend dependencies, and creates the service. It preserves existing `.env` and `config/settings.yaml` files.
 
 Useful commands:
 
@@ -106,7 +100,6 @@ Useful commands:
 sudo systemctl status ontopilot
 sudo journalctl -u ontopilot -f
 sudo systemctl restart ontopilot
-sudo nginx -t
 ```
 
 See [中文部署说明](README.zh-CN.md#ubuntu-生产部署) for separate frontend/backend commands and firewall setup.
@@ -155,11 +148,6 @@ ontopilot/           # Core library
 api/                 # FastAPI backend
   ├── main.py        # App entry point & middleware
   └── routes/        # Route modules (chat, settings, sessions, users, audit)
-
-frontend/            # React frontend (Vite + Tailwind)
-  └── src/
-      ├── App.tsx
-      └── components/  # UI components
 
 config/              # Ontology configuration files
 tests/               # Test suite

@@ -42,6 +42,9 @@ class NanoTopicClient:
     def manifest(self) -> dict[str, Any]:
         return self.request("GET", f"/agent-runtime/topics/{self.topic_id}/manifest")
 
+    def topics(self) -> list[dict[str, Any]]:
+        return self.request("GET", "/agent-runtime/topics")
+
     def identity(self) -> dict[str, Any]:
         """Resolve the caller identity from Nano, never from browser input."""
         return self.request("GET", "/agent-runtime/me")
@@ -59,24 +62,43 @@ class NanoTopicClient:
             "entity_id": entity_id, "relation_type": relation_type, "direction": direction,
         })
 
-    def preview_action(self, alert_id: str | None = None, action_name: str | None = None,
-                       patient_id: str | None = None) -> dict:
-        """Ask Nano to resolve the actionable alert from published context.
+    def object_context(self, object_key: str) -> dict[str, Any]:
+        result = self.request("GET", f"/agent-runtime/topics/{self.topic_id}/objects/{object_key}/context")
+        technical = {
+            "source_asset_id", "source_asset_hash", "source_row_number", "source_event_id",
+            "trace_id", "schema_version", "instance_category", "confidence", "description",
+        }
+        result["facts"] = [
+            {key: value for key, value in fact.items() if key not in technical and value not in (None, "")}
+            for fact in result.get("facts", [])
+        ]
+        result["relations"] = [
+            {key: relation.get(key) for key in ("type", "source_entity", "target_entity")}
+            for relation in result.get("relations", [])
+        ]
+        return result
 
-        Alert UUIDs are runtime internals.  The agent can use one when it has
-        just queried an alert, but action name plus patient ID is the stable
-        interface for a natural-language request.
-        """
+    def evaluate_rule(self, function_name: str, params: dict) -> dict:
+        object_id = params.get("object_id")
+        return self.request("POST", f"/agent-runtime/topics/{self.topic_id}/rules:evaluate", json={
+            "function_name": function_name, "object_id": object_id, "parameters": params,
+        })
+
+    def preview_action(self, action_name: str, target_object_id: str | None = None,
+                       parameters: dict | None = None) -> dict:
         return self.request("POST", f"/agent-runtime/topics/{self.topic_id}/actions:preview", json={
-            "alert_id": alert_id,
             "action_name": action_name,
-            "patient_id": patient_id,
+            "target_object_id": target_object_id,
+            "parameters": parameters or {},
         })
 
     def commit_action(self, confirmation_id: str, approved: bool) -> dict:
         return self.request("POST", f"/agent-runtime/topics/{self.topic_id}/actions:commit", json={
             "confirmation_id": confirmation_id, "approved": approved,
         })
+
+    def action_run(self, run_id: str) -> dict:
+        return self.request("GET", f"/agent-runtime/topics/{self.topic_id}/action-runs/{run_id}")
 
 
 @dataclass
@@ -87,15 +109,23 @@ class NanoSchemaRegistry:
     def __post_init__(self):
         self._object_types: dict[str, ObjectTypeDef] = {}
         for raw in self.manifest.get("schema", {}).get("object_types", []):
-            props = {name: {"type": "string", "required": False} for name in raw.get("properties", [])}
+            props = {}
+            for item in raw.get("properties", []):
+                item = {"name": item} if isinstance(item, str) else item
+                props[item["name"]] = {
+                    "type": item.get("type", "string"),
+                    "description": item.get("description", ""),
+                    "required": item.get("required", False),
+                    "primary_key": item.get("primary_key", False),
+                }
             props.setdefault("id", {"type": "string", "required": True, "primary_key": True})
             self._object_types[raw["name"]] = ObjectTypeDef(raw["name"], raw.get("description", ""), props, {})
         self._actions = {
-            raw["name"]: ActionDef(raw["name"], raw.get("description", ""), {}, "", raw.get("requires_confirmation", True))
+            raw["name"]: ActionDef(raw["name"], raw.get("description", ""), raw.get("params", {}), "", raw.get("requires_confirmation", True))
             for raw in self.manifest.get("actions", [])
         }
         self._functions = {
-            raw["executor_key"]: FunctionDef(raw["executor_key"], raw.get("description", ""), {}, "object", "published")
+            raw["executor_key"]: FunctionDef(raw["executor_key"], raw.get("description", ""), raw.get("params", {}), raw.get("returns", "object"), "published")
             for raw in self.manifest.get("rules", []) if raw.get("executor_key")
         }
 
@@ -126,45 +156,19 @@ class NanoObjectStore:
     def __init__(self, client: NanoTopicClient, schema: NanoSchemaRegistry):
         self._client, self._schema = client, schema
 
-    @staticmethod
-    def _topic_type(object_type: str, filters: dict | None) -> str:
-        # Existing Ontopilot nephrology functions model patient facts as
-        # Indicator/Drug. Nano stores them as immutable Observation/MedicationOrder.
-        patient_scoped = any(key in (filters or {}) for key in ("patientId", "patient_id"))
-        if patient_scoped and object_type == "Indicator":
-            return "Observation"
-        if patient_scoped and object_type == "Drug":
-            return "MedicationOrder"
-        return object_type
-
-    @staticmethod
-    def _normalize(item: dict[str, Any]) -> dict[str, Any]:
-        result = dict(item)
-        aliases = {"patient_id": "patientId", "encounter_id": "encounterId", "local_code": "localCode",
-                   "occurred_at": "occurredAt", "drug_name": "name"}
-        for source, target in aliases.items():
-            if source in result and target not in result:
-                result[target] = result[source]
-        if result.get("localCode") == "EGFR":
-            result.setdefault("name", "eGFR"); result.setdefault("nameCn", "估算肾小球滤过率")
-        if result.get("localCode") == "K":
-            result.setdefault("name", "血钾"); result.setdefault("nameCn", "血钾")
-        return result
-
     def get(self, object_type: str, object_id: str) -> dict | None:
         rows = self.query(object_type, {"id": object_id}, None)
         return rows[0] if rows else None
 
     def query(self, object_type: str, filters: dict | None, properties: list | None) -> list[dict]:
-        rows = self._client.query(self._topic_type(object_type, filters), filters, properties)
-        return [self._normalize(item) for item in rows]
+        return self._client.query(object_type, filters, properties)
 
     def count(self, object_type: str, filters: dict | None) -> int:
-        return int(self._client.query(self._topic_type(object_type, filters), filters, None, "count"))
+        return int(self._client.query(object_type, filters, None, "count"))
 
     def traverse(self, object_type: str, object_id: str, link_name: str, properties: list | None) -> list[dict]:
         rows = self._client.traverse(object_id, link_name)
-        result = [self._normalize(row["entity"]) for row in rows]
+        result = [row["entity"] for row in rows]
         return [{key: item[key] for key in properties if key in item} for item in result] if properties else result
 
     def update(self, object_type: str, object_id: str, changes: dict) -> dict:
@@ -191,7 +195,8 @@ class NanoPermissionEvaluator:
             # unchanged Agent and PromptBuilder can consume this adapter.
             "query_types": self._object_types if policy.get("query") == "all" else [],
             "functions": self._functions if policy.get("rules") == "published" else [],
-            "actions": {name: {} for name in self._actions} if policy.get("actions") == "published" else {},
+            "actions": {name: {"requires_confirmation": True} for name in self._actions}
+                       if policy.get("actions") in {"published", "preview_only"} else {},
             "data_scope": {},
         }
 
@@ -204,8 +209,11 @@ class NanoPermissionEvaluator:
     def can_execute_action(self, role: str, action_name: str) -> bool:
         return action_name in self._role(role)["actions"]
 
-    def get_allowed_warehouse_regions(self, role: str) -> list[str]:
-        return []
+    def get_action_confirmation(self, role: str, action_name: str) -> bool:
+        return self.can_execute_action(role, action_name)
+
+    def get_data_scope(self, role: str) -> dict[str, list[str]]:
+        return {}
 
     def get_allowed_functions(self, role: str) -> list[str]:
         return self._role(role)["functions"]
@@ -215,11 +223,24 @@ class NanoContextBuilder:
     def __init__(self, manifest: dict[str, Any]):
         self.manifest = manifest
 
-    def build(self, user_id: str, role: str, warehouse_id: str) -> str:
+    def build(self, user_id: str, role: str, context_id: str) -> str:
         topic = self.manifest["topic"]
+        release = self.manifest.get("release", {})
         return "\n".join(["[CONTEXT]", f"用户: {user_id}", f"角色: {role}",
                           f"知识主题: {topic['name']}", f"领域: {topic.get('domain') or ''}",
+                          f"主题版本: {release.get('version') or ''}",
+                          f"主题修订: {release.get('revision') or self.manifest.get('revision') or ''}",
+                          f"上下文标识: {context_id}" if context_id else "上下文标识: 无",
                           f"可用对象类型: {', '.join(item['name'] for item in self.manifest['schema']['object_types'])}", "[/CONTEXT]"])
+
+
+class NanoRuleRegistry:
+    """Execute every published topic rule through Nano instead of local Python names."""
+    def __init__(self, client: NanoTopicClient):
+        self.client = client
+
+    def call(self, function_name: str, params: dict) -> dict:
+        return self.client.evaluate_rule(function_name, params)
 
 
 class NanoActionExecutor:
@@ -228,18 +249,20 @@ class NanoActionExecutor:
         self.client = client
 
     def preview(self, _role: str, action_name: str, params: dict) -> dict:
-        alert_id = params.get("alert_id") or params.get("alertId")
-        patient_id = params.get("patient_id") or params.get("patientId")
+        target_id = params.get("target_object_id") or params.get("id")
         try:
-            preview = self.client.preview_action(str(alert_id) if alert_id else None, action_name, patient_id)
+            preview = self.client.preview_action(action_name, str(target_id) if target_id else None, params)
         except NanoTopicRequestError as exc:
             return {"status": "error", "changes": [], "error": str(exc)}
         return {"status": "pending_confirmation", "changes": [preview.get("preview", {})],
                 "confirmation_id": preview.get("confirmation_id"), "preview": preview}
 
     def execute(self, _role: str, _user_id: str, action_name: str, params: dict, confirmed: bool) -> dict:
-        preview = self.preview(_role, action_name, params)
-        if preview.get("status") == "error" or not confirmed:
-            return preview
-        result = self.client.commit_action(str(preview["confirmation_id"]), True)
+        confirmation_id = params.get("confirmation_id") or params.get("confirmationId")
+        if not confirmed:
+            return {"status": "pending_confirmation", "action": action_name}
+        if not confirmation_id:
+            return {"status": "error", "action": action_name,
+                    "error": "缺少预览阶段返回的 confirmation_id，不能执行动作"}
+        result = self.client.commit_action(str(confirmation_id), True)
         return {"status": result.get("status"), "action": action_name, "result": result}

@@ -5,6 +5,7 @@ import asyncio
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 
+from api.nano_identity import nano_client
 from ontopilot.llm import create_llm_from_config, load_settings, save_settings
 
 router = APIRouter()
@@ -16,21 +17,8 @@ class SettingsUpdate(BaseModel):
 
 @router.get("/runtime/models")
 async def runtime_models(request: Request) -> dict:
-    """Expose selectable models without returning credentials."""
-    settings = request.app.state.settings
-    return {
-        "models": [
-            {
-                "id": item.get("id"),
-                "name": item.get("name") or item.get("model"),
-                "model": item.get("model"),
-                "provider": item.get("provider"),
-                "is_default": item.get("id") == settings.get("active_model_id"),
-            }
-            for item in settings.get("models", [])
-            if item.get("id") and item.get("model")
-        ]
-    }
+    """Expose Nano-managed selectable models without returning credentials."""
+    return {"models": nano_client(request).models()}
 
 
 @router.get("/settings")

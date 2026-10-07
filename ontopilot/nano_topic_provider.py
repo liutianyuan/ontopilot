@@ -49,6 +49,14 @@ class NanoTopicClient:
         """Resolve the caller identity from Nano, never from browser input."""
         return self.request("GET", "/agent-runtime/me")
 
+    def models(self) -> list[dict[str, Any]]:
+        return self.request("GET", "/agent-runtime/models").get("models", [])
+
+    def model_chat(self, model_id: str, messages: list[dict[str, Any]],
+                   tools: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+        return self.request("POST", f"/agent-runtime/models/{model_id}/chat",
+                            json={"messages": messages, "tools": tools or []}, timeout=1800)
+
     def query(self, object_type: str, filters: dict | None = None, properties: list | None = None,
               aggregation: str | None = None) -> list[dict] | int:
         data = self.request("POST", f"/agent-runtime/topics/{self.topic_id}/objects:query", json={

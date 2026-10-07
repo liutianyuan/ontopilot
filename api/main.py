@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routes.chat import router as chat_router
 from api.routes.audit import router as audit_router
 from ontopilot.runtime import OntologyRuntime
-from ontopilot.llm import create_llm, load_settings
+from ontopilot.llm import load_settings
 from ontopilot.audit import AuditLogger
 from ontopilot.nano_topic_provider import (NanoActionExecutor, NanoContextBuilder,
                                            NanoObjectStore, NanoPermissionEvaluator,
@@ -37,7 +37,7 @@ def build_nano_topic_runtime(topic_id: str, token: str | None, audit_logger: Aud
 async def lifespan(app: FastAPI):
     app.state.config_dir = "config"
     app.state.settings = load_settings(app.state.config_dir)
-    app.state.active_llm = create_llm(app.state.config_dir)
+    app.state.active_llm = None
     app.state.audit_logger = AuditLogger(".ontopilot.db")
     nano_topic_id = os.getenv("NANO_TOPIC_ID")
     if nano_topic_id:

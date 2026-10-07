@@ -1,6 +1,7 @@
 from __future__ import annotations
 import asyncio
 import json
+import os
 import uuid
 
 from fastapi import APIRouter, Request
@@ -9,27 +10,18 @@ from langchain_core.messages import HumanMessage, AIMessage
 
 from api.schemas import ChatRequest, ChatResponse
 from api.routes.sessions import session_store
-from ontopilot.llm import create_llm_from_config
+from ontopilot.nano_llm import NanoManagedChatModel
+from ontopilot.nano_topic_provider import NanoTopicClient
 
 router = APIRouter()
 
 
-def _resolve_llm(app_state, model_id: str | None):
-    """Get LLM for the given model_id, falling back to the active LLM."""
-    if model_id is None:
-        return app_state.active_llm
-
-    settings = app_state.settings
-    models = settings.get("models", [])
-    if not hasattr(app_state, "_llm_cache"):
-        app_state._llm_cache = {}
-
-    if model_id not in app_state._llm_cache:
-        config = next((m for m in models if m["id"] == model_id), None)
-        if config is None:
-            return app_state.active_llm
-        app_state._llm_cache[model_id] = create_llm_from_config(config)
-    return app_state._llm_cache[model_id]
+def _resolve_llm(model_id: str | None, token: str | None):
+    """Use a selected Nano-managed model; credentials never leave Nano."""
+    if not model_id:
+        raise ValueError("请选择 Nano 系统中配置的大模型")
+    client = NanoTopicClient(os.getenv("NANO_API_BASE", "http://127.0.0.1:10081/api/v1"), "", token=token)
+    return NanoManagedChatModel(client=client, selection_id=model_id)
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -38,13 +30,14 @@ async def chat(request: ChatRequest, req: Request):
 
     # Resolve model and ontology
     try:
-        llm = _resolve_llm(app_state, request.model_id)
+        from api.nano_identity import bearer_token
+        token = bearer_token(req)
+        llm = _resolve_llm(request.model_id, token)
         if not request.ontology_id:
             raise ValueError("请选择知识主题")
-        from api.nano_identity import bearer_token
         from api.main import build_nano_topic_runtime
         runtime, schema, governance, delegated_identity = build_nano_topic_runtime(
-            request.ontology_id, bearer_token(req), app_state.audit_logger,
+            request.ontology_id, token, app_state.audit_logger,
             resolve_identity=True,
         )
     except Exception as e:
